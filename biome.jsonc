@@ -1,0 +1,67 @@
+{
+	"$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+	"vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+	"formatter": { "enabled": false },
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"complexity": {
+				"noForEach": "off",
+				"useArrowFunction": "error",
+				"useDateNow": "warn",
+				"useLiteralKeys": "off",
+				"noBannedTypes": "off"
+			},
+			"correctness": {
+				"noFlatMapIdentity": "error",
+				"noInvalidUseBeforeDeclaration": "off",
+				"noStringCaseMismatch": "error",
+				"noSwitchDeclarations": "off",
+				"noUndeclaredVariables": "off",
+				"noUnusedFunctionParameters": "off",
+				"noUnusedVariables": "off",
+				"noEmptyPattern": "off"
+			},
+			"nursery": {
+				"noCommonJs": "error"
+			},
+			"performance": {
+				"noAccumulatingSpread": "error",
+				"noReExportAll": "off"// Needed for library functions
+			},
+			"suspicious": {
+				"noConsoleLog": "warn",
+				// https://github.com/evanw/esbuild/issues/128#issuecomment-1599085571
+				"noConstEnum": "error",
+				"noDuplicateTestHooks": "error",
+				"noExplicitAny": "off",
+				"noFocusedTests": "error",
+				"noGlobalIsFinite": "error",
+				"noGlobalIsNan": "error",
+				"useNumberToFixedDigitsArgument": "warn",
+				"noShadowRestrictedNames": "off",
+				"noSkippedTests": "error",
+				"useAwait": "error",
+				"noConfusingVoidType": "off"
+			},
+			"style": {
+				"noNonNullAssertion": "off",
+				"noRestrictedGlobals": {
+					"level": "error",
+					"options": {
+						"deniedGlobals": ["length", "name", "undefined"]
+					}
+				},
+				"noUnusedTemplateLiteral": "off",
+				"noUselessElse": "off",
+				"useCollapsedElseIf": "error",
+				"useEnumInitializers": "off",
+				"useImportType": "warn",
+				"useTemplate": "off"
+			}
+		}
+	},
+	"organizeImports": {
+		"enabled": true
+	}
+}

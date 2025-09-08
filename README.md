@@ -1,2 +1,1 @@
-# Azureghost
-World boss respawn timers
+World boss timers created for Dragonwatch.

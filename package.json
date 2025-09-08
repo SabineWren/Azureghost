@@ -1,0 +1,26 @@
+{
+	"author": {
+		"name": "SabineWren",
+		"email": "sabinewrensc@gmail.com",
+		"url": "https://github.com/SabineWren"
+	},
+	"dependencies": {
+		"effect": "^3.17.13"
+	},
+	"devDependencies": {
+		"@types/node": "24.3.1",
+		"expect": "^30.1.2",
+		"typescript": "^5.9.2"
+	},
+	"engines": {
+		"node": ">= 24.4.1"
+	},
+	"scripts": {
+		"app": "node --harmony-temporal Main.ts",
+		"test": "node --harmony-temporal --enable-source-maps --test-reporter dot --test Main.test.ts",
+		"typecheck": "tsc --watch --project tsconfig.json --preserveWatchOutput",
+		"typecheck-once": "tsc --project tsconfig.json"
+	},
+	"type": "module"
+
+}

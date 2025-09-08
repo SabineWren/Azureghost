@@ -1,0 +1,27 @@
+{
+	"compilerOptions": {
+		// ************ Settings necessary for making the build work. ************
+		"allowJs": false,
+		"allowImportingTsExtensions": true,
+		"baseUrl": "./",
+		"exactOptionalPropertyTypes": true,
+		"forceConsistentCasingInFileNames": true,
+		"importHelpers": true,
+		"lib": ["ES2024", "ESNext"],
+		"module": "nodenext",
+		"moduleResolution": "nodenext",
+		"noEmit": true,
+		"noErrorTruncation": true,
+		"target": "esnext",
+		"skipLibCheck": true,
+		// ************ Language features for code verification. ************
+		"noUncheckedIndexedAccess": true,
+		"noUncheckedSideEffectImports": true,
+		"noImplicitOverride": true, // Not included in "strict"
+		"strict": true,
+		// https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-7.html#the-usedefineforclassfields-flag-and-the-declare-property-modifier
+		"useDefineForClassFields": true
+	},
+	"include": ["**/*"],
+	"exclude": ["node_modules/**/*"]
+}

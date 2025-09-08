@@ -1,0 +1,4 @@
+node_modules
+
+# Only needed until official typedefs exist
+Temporal.d.ts
