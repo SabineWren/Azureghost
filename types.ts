@@ -1,7 +1,7 @@
 import { Schema as S } from "effect"
 
-const Duration = S.declare((x: any): x is Temporal.Duration => typeof x === "object")
-const PlainDateTime = S.declare((x: any): x is Temporal.PlainDateTime => typeof x === "object")
+const Duration = S.declare((x: unknown) => x instanceof Temporal.Duration)
+const PlainDateTime = S.declare((x: unknown) => x instanceof Temporal.PlainDateTime)
 
 const Respawn = S.Struct({
 	Delay: Duration,
@@ -59,7 +59,7 @@ export const BOSS_VANILLA = {
 
 } as const satisfies Record<string, Boss>
 
-export const BOSSES_TURTLE = {
+export const BOSS_TURTLE = {
 	Reaver: {
 		Name: "Dark Reaver of Karazhan",
 		Emoji: ":horse_racing:",

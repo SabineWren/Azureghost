@@ -24,7 +24,3 @@ export const Ψ = <A, B, C>
 
 export const S = <A, B, C>(x: A, g: (a: A) => B, f: (a: A, b: B) => C): C =>
 	f(x, g(x))
-
-// Operators
-export const Sub = (a: number, b: number) =>
-	a - b

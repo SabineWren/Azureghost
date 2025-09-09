@@ -19,26 +19,15 @@
 	// ************ TypeScript ************
 	// -----------------------------------------------------------
 	"[javascript][typescript]": {
-		"editor.codeActionsOnSave": {
-			"quickfix.biome": "explicit",
-			"source.organizeImports.biome": "explicit"
-		},
 		"editor.formatOnSave": false
 	},
 	"[element.ts]": {
 		"editor.formatOnSave": false
 	},
-	"editor.codeActionsOnSave": {
-		"quickfix.biome": "never",
-		"source.organizeImports.biome": "never"
-	},
 	// Formatter
 	"typescript.tsdk": "node_modules/typescript/lib",
 	"typescript.format.indentSwitchCase": false,
 	"typescript.format.semicolons": "remove",
-	// Imports
-	"javascript.preferences.importModuleSpecifier": "non-relative",
-	"javascript.preferences.importModuleSpecifierEnding": "js",
 	// -----------------------------------------------------------
 	// ************ Icons ************
 	// -----------------------------------------------------------
@@ -59,7 +48,6 @@
 		{ "format": "svg", "extensions": ["test.ts"], "icon": "test", "filename": true },
 		// State management
 		{ "format": "svg", "extensions": [".provider.ts"], "icon": "patch" },
-		{ "format": "svg", "extensions": ["provider.ts"], "icon": "patch", "filename": true },
-	],
-	"dotnet.previewSolution-freeWorkspaceMode": true
+		{ "format": "svg", "extensions": ["provider.ts"], "icon": "patch", "filename": true }
+	]
 }

@@ -1,7 +1,7 @@
-import { FormatWindow } from "./Format.math.ts"
-import { CompareWindows, ComputeRespawn } from "./math.ts"
-import { BOSS_VANILLA, Boss, Kill, MONTH } from "./types.ts"
-import { Array, pipe } from "effect"
+import { Array, DateTime } from "./Lib/math.ts"
+import { ComputeRespawnWindow } from "./math.ts"
+import { Boss, BOSS_VANILLA, Kill, MONTH, type Window } from "./types.ts"
+import { pipe } from "effect"
 
 const input: Kill[] = [
 	{
@@ -10,13 +10,19 @@ const input: Kill[] = [
 	},
 ]
 
+const formatWindow = (x: Window): string =>
+	x.Boss.Name + " " + x.Boss.Emoji
+	// TODO: Server time changes with UK DST.
+	+ "\n" + `${DateTime.Format(x.Start)} to ${DateTime.Format(x.End)} **-** *Server Time*`
+	+ "\n" + `${DateTime.ToUnix(x.Start)} to ${DateTime.ToUnix(x.End)} **-** *Local Time*`
+
 const output = pipe(
 	input,
-	xs => xs.map(ComputeRespawn),
-	xs => xs.sort(CompareWindows),
-	xs => xs.map(FormatWindow),
+	Array.map(ComputeRespawnWindow),
+	Array.SortBy(x => x.Start, Temporal.PlainDateTime.compare),
+	Array.map(formatWindow),
 	Array.prepend("**__UPCOMING BOSS TIMERS__**"),
-	xs => xs.join("\n\n"),
+	Array.join("\n\n"),
 )
 
 const payload = {
