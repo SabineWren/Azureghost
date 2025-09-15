@@ -1,7 +1,7 @@
-import { Array, DateTime } from "./Lib/math.ts"
-import { ComputeRespawnWindow } from "./math.ts"
-import { Boss, BOSS_VANILLA, Kill, MONTH, type Window } from "./types.ts"
-import { pipe } from "effect"
+import { Array, DateTime, Option, Pipe } from "./Lib/math.ts"
+import { ComputeRespawnWindows } from "./Respawn_Window/math.ts"
+import { BOSS_VANILLA, Kill, MONTH } from "./Respawn_Window/types.ts"
+import { Config } from "env.ts"
 
 const input: Kill[] = [
 	{
@@ -10,23 +10,9 @@ const input: Kill[] = [
 	},
 ]
 
-const formatWindow = (x: Window): string =>
-	x.Boss.Name + " " + x.Boss.Emoji
-	// TODO: Server time changes with UK DST.
-	+ "\n" + `${DateTime.Format(x.Start)} to ${DateTime.Format(x.End)} **-** *Server Time*`
-	+ "\n" + `${DateTime.ToUnix(x.Start)} to ${DateTime.ToUnix(x.End)} **-** *Local Time*`
-
-const output = pipe(
-	input,
-	Array.map(ComputeRespawnWindow),
-	Array.SortBy(x => x.Start, Temporal.PlainDateTime.compare),
-	Array.map(formatWindow),
-	Array.prepend("**__UPCOMING BOSS TIMERS__**"),
-	Array.join("\n\n"),
-)
-
+const output = ComputeRespawnWindows(input)
 const payload = {
 	"username": "Boss Timers",
 	"content": output,
 }
-console.log(JSON.stringify(payload))
+// console.log(JSON.stringify(payload))
