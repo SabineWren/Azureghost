@@ -7,9 +7,11 @@
 	"dependencies": {
 		"discord-interactions": "^4.3.0",
 		"dotenv": "^17.2.2",
-		"effect": "^3.17.13"
+		"effect": "^3.17.13",
+		"express": "^5.1.0"
 	},
 	"devDependencies": {
+		"@types/express": "^5.0.3",
 		"@types/node": "24.3.1",
 		"discord-api-types": "0.38.24",
 		"expect": "^30.1.2",
@@ -19,9 +21,9 @@
 		"node": ">= 24.4.1"
 	},
 	"scripts": {
-		"app": "node --harmony-temporal Main.ts",
+		"bot": "node --harmony-temporal Main.ts",
+		"register": "node --enable-source-maps Discord/SlashCommands.entry.ts",
 		"test": "node --harmony-temporal --enable-source-maps --test-reporter dot --test Main.test.ts",
-		"register": "node --enable-source-maps Discord/RegisterCommands.ts",
 		"typecheck": "tsc --watch --project tsconfig.json --preserveWatchOutput",
 		"typecheck-once": "tsc --project tsconfig.json"
 	},
