@@ -1,6 +1,6 @@
 import { type GameResult, type PlayerAction, RuleDetail } from "./types.ts"
 
-export const DecideResult = (p1: PlayerAction, p2: PlayerAction): string => {
+export const DecideOutcome = (p1: PlayerAction, p2: PlayerAction): string => {
 	const p1Win = RuleDetail[p1.objectName].Beats[p2.objectName]
 	const p2Win = RuleDetail[p2.objectName].Beats[p1.objectName]
 	const gameResult: GameResult =

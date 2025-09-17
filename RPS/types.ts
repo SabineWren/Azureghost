@@ -7,7 +7,7 @@ export type Rule = {
 }
 
 export type PlayerAction = {
-	id: any
+	id: string
 	objectName: RuleName
 }
 

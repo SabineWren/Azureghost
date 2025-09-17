@@ -18,11 +18,10 @@ const request = <I>(
 				...(accept === "json" ? { Accept: "application/json" } : {}),
 				"Authorization": `Bot ${Config.DISCORD_TOKEN}`,
 				"Content-Type": "application/json charset=UTF-8",
-				"User-Agent": "DiscordBot (https://github.com/discord/discord-example-app, 1.0.0)",
+				"User-Agent": "DiscordBot (https://github.com/SabineWren/Azureghost, 1.0.0)",
 			},
 			method: method,
 		}
-		console.log(options)
 		return fetch(url, options)
 	},
 	resp => resp.then(async r => {

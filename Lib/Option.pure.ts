@@ -45,3 +45,17 @@ export const Filter: {
 			v => pred(v) ? self as Option<B> : EffectOption.none(),
 		),
 )
+
+export const FilterMap: {
+	<A, B extends A, C>(pred: (a: A) => a is B, mapper: (b: B) => C): (self: Option<A>) => Option<C>
+	<A, C>(pred: (a: A) => boolean, mapper: (b: A) => C): (self: Option<A>) => Option<C>
+	<A, B extends A, C>(self: Option<A>, pred: (a: A) => a is B, mapper: (b: B) => C): Option<C>
+	<A, C>(self: Option<A>, pred: (a: A) => boolean, mapper: (b: A) => C): Option<C>
+} = Dual(
+	3,
+	<A, B extends A, C>(self: Option<A>, pred: (a: A) => a is B, mapper: (b: B) => C): Option<C> =>
+		EffectOption.flatMap(
+			self,
+			v => pred(v) ? EffectOption.some(mapper(v)) : EffectOption.none(),
+		),
+)
