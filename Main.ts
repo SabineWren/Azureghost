@@ -1,7 +1,14 @@
 import type { APIInteraction } from "discord-api-types/v10"
 import { verifyKeyMiddleware } from "discord-interactions"
 import express from "express"
-import { InteractionResponseType, InteractionType } from "./Discord/types.ts"
+import {
+	ApplicationCommandOptionType,
+	ApplicationCommandType,
+	InteractionContextType,
+	InteractionResponseType,
+	InteractionType,
+} from "./Discord/types.ts"
+import { Option, Pipe } from "./Lib/pure.ts"
 import { ComputeRespawnWindows } from "./Respawn_Window/pure.ts"
 import { BOSS_VANILLA, Kill, MONTH } from "./Respawn_Window/types.ts"
 import { HandleChallenge, HandleTest } from "./RPS/handler.ts"
@@ -23,15 +30,36 @@ router.post("/interactions", verifyKeyMiddleware(Config.PUBLIC_KEY), async (req,
 		case "test":
 			return res.send(HandleTest(interaction))
 		case "challenge":
-
-			// Interaction context
-			const context = req.body.context
-			// User ID is in user field for (G)DMs, and member for servers
-			const userId: string = context === 0 ? req.body.member.user.id : req.body.user.id
-			// User's object choice
-			const objectName = req.body.data.options[0].value
-
-			return res.send(HandleChallenge(interaction, userId, req.body.id, objectName))
+			return Pipe(
+				Option.Do,
+				// User ID is in user field for (G)DMs, and member for servers.
+				Option.bind("userId", () => Pipe(
+					interaction.context,
+					Option.fromNullable,
+					Option.flatMapNullable(context => context === InteractionContextType.Guild
+						? interaction.member?.user
+						: interaction.user,
+					),
+					Option.map(x => x.id),
+				)),
+				// TODO schema decode?
+				// User's object choice -- See Command.types.ts
+				Option.bind("option", () => Pipe(
+					Option.some(interaction.data),
+					Option.Filter(x => x.type === ApplicationCommandType.ChatInput),
+					Option.flatMapNullable(x => x.options),
+					Option.flatMapNullable(xs => xs[0]),
+					Option.Filter(x => x.type === ApplicationCommandOptionType.String)
+				)),
+				Option.match({
+					onNone: () => {
+						console.error("Error validating command args", interaction.data.name)
+						return res.status(400).json({ error: "Error validating command args" })
+					},
+					onSome: ({ option, userId }) =>
+						res.send(HandleChallenge(interaction.id, userId, option)),
+				}),
+			)
 		default:
 			console.error("unknown command", interaction.data.name)
 			return res.status(400).json({ error: "unknown command" })

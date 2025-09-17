@@ -1,7 +1,15 @@
 
+import type { APIApplicationCommandOption } from "discord-api-types/v10"
 import { RuleDetail } from "./types.ts"
 import { Array, Pipe, Record } from "../Lib/pure.ts"
-import type { NewCommand } from "../Discord/types.ts"
+import {
+	ApplicationCommandOptionType,
+	ApplicationCommandType,
+	ApplicationIntegrationType,
+	InteractionContextType,
+	type NewCommand,
+} from "../Discord/types.ts"
+
 
 const createCommandChoices = () => Pipe(
 	Record.Keys(RuleDetail),
@@ -16,21 +24,24 @@ const _TEST: NewCommand = {
 	contexts: [0, 1, 2],
 }
 
-const _CHALLENGE: NewCommand = {
+const _CHALLENGE_OPTION = {
+	type: ApplicationCommandOptionType.String,
+	name: "object",
+	description: "Pick your object",
+	required: true,
+	choices: createCommandChoices(),
+} as const satisfies APIApplicationCommandOption
+
+const _CHALLENGE = {
 	name: "challenge",
 	description: "Challenge to a match of rock paper scissors",
-	options: [
-		{
-			type: 3,
-			name: "object",
-			description: "Pick your object",
-			required: true,
-			choices: createCommandChoices(),
-		},
+	options: [_CHALLENGE_OPTION],
+	type: ApplicationCommandType.ChatInput,
+	integration_types: [ApplicationIntegrationType.GuildInstall],
+	contexts: [
+		InteractionContextType.Guild,
+		InteractionContextType.PrivateChannel,
 	],
-	type: 1,
-	integration_types: [0, 1],
-	contexts: [0, 2],
-}
+} as const satisfies NewCommand
 
 export const ALL_COMMANDS: NewCommand[] = [_TEST, _CHALLENGE]

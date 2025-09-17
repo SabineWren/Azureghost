@@ -1,10 +1,13 @@
 import type {
 	APIInteraction,
 	APIApplicationCommand,
+	APIApplicationCommandInteractionDataStringOption,
 	APIApplicationCommandInteraction,
+	APIBaseInteraction,
 	APIInteractionResponse,
 	APIInteractionResponseCallbackData,
 } from "discord-api-types/v10"
+
 import {} from "discord-interactions"
 import {
 	ButtonStyleTypes,
@@ -17,17 +20,15 @@ import {
 const activeGames: Record<string, { id: string, objectName: any }> = {}
 
 export const HandleChallenge = (
-	interaction: APIApplicationCommandInteraction,
+	interactionId: string,
 	userId: string,
-	reqBodyId: any,
-	objectName: any,
+	option: APIApplicationCommandInteractionDataStringOption,
 ): APIInteractionResponse => {
 	// Create active game using message ID as the game ID
-	activeGames[interaction.id] = {
+	activeGames[interactionId] = {
 		id: userId,
-		objectName,
+		objectName: option.value,
 	}
-
 	const respPayload: APIInteractionResponseCallbackData = {
 		flags: InteractionResponseFlags.IS_COMPONENTS_V2,
 		components: [
@@ -42,7 +43,7 @@ export const HandleChallenge = (
 					{
 						type: MessageComponentTypes.BUTTON,
 						// Append the game ID to use later on
-						custom_id: `accept_button_${reqBodyId}`,
+						custom_id: `accept_button_${interactionId}`,
 						label: "Accept",
 						style: ButtonStyleTypes.PRIMARY,
 					},

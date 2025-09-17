@@ -1,4 +1,10 @@
-import type { APIApplicationCommand } from "discord-api-types/v10"
+import type {
+	APIApplicationCommand,
+	ApplicationCommandOptionType as ApplicationCommandOptionTypeEnum,
+	ApplicationCommandType as ApplicationCommandTypeEnum,
+	ApplicationIntegrationType as ApplicationIntegrationTypeEnum,
+	InteractionContextType as InteractionContextTypeEnum,
+} from "discord-api-types/v10"
 import type {
 	ButtonStyleTypes as ButtonStyleTypesEnum,
 	InteractionResponseFlags as InteractionResponseFlagsEnum,
@@ -9,6 +15,7 @@ import type {
 
 // Re-export enums as pojos.
 // Libs use different TS enums, which break typing despite using the same values.
+type valuesOf<T> = T[keyof T]
 
 // This seems to work, but I can't find it in either existing types library.
 export type NewCommand = Omit<
@@ -18,6 +25,41 @@ export type NewCommand = Omit<
 	| "default_member_permissions"
 	| "version"
 >
+
+/** @see {@link https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-option-type} */
+export const ApplicationCommandOptionType = {
+	Subcommand: 1,
+	SubcommandGroup: 2,
+	String: 3,
+	Integer: 4,
+	Boolean: 5,
+	User: 6,
+	Channel: 7,
+	Role: 8,
+	Mentionable: 9,
+	Number: 10,
+	Attachment: 11,
+} as const satisfies typeof ApplicationCommandOptionTypeEnum
+export type ApplicationCommandOptionType = valuesOf<typeof ApplicationCommandOptionType>
+
+export const ApplicationCommandType = {
+	/** Slash commands; a text-based command that shows up when a user types */
+	ChatInput: 1,
+	/** A UI-based command that shows up when you right click or tap on a user */
+	User: 2,
+	/** A UI-based command that shows up when you right click or tap on a message */
+	Message: 3,
+	/** A UI-based command that represents the primary way to invoke an app's Activity */
+	PrimaryEntryPoint: 4,
+} as const satisfies typeof ApplicationCommandTypeEnum
+export type ApplicationCommandType = valuesOf<typeof ApplicationCommandType>
+
+export const ApplicationIntegrationType = {
+	/** App is installable to servers */
+	GuildInstall: 0,
+	/** App is installable to users */
+	UserInstall: 1,
+} as const satisfies typeof ApplicationIntegrationTypeEnum
 
 /**
  * @see {@link https://discord.com/developers/docs/components/reference#button-button-styles}
@@ -37,6 +79,17 @@ export const ButtonStyleTypes = {
 	PREMIUM: 6,
 } as const satisfies typeof ButtonStyleTypesEnum
 export type ButtonStyleTypes = valuesOf<typeof ButtonStyleTypes>
+
+/** @see {@link https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-context-types} */
+export const InteractionContextType = {
+	/** Interaction can be used within servers */
+	Guild: 0,
+	/** Interaction can be used within DMs with the app's bot user */
+	BotDM: 1,
+	/** Interaction can be used within Group DMs and DMs other than the app's bot user */
+	PrivateChannel: 2,
+} as const satisfies typeof InteractionContextTypeEnum
+export type InteractionContextType = valuesOf<typeof InteractionContextType>
 
 export const InteractionResponseFlags = {
 	/** Show the message only to the user that performed the interaction.
@@ -100,4 +153,3 @@ export const MessageComponentTypes = {
 } as const satisfies typeof MessageComponentTypesEnum
 export type MessageComponentTypes = valuesOf<typeof MessageComponentTypes>
 
-type valuesOf<T> = T[keyof T]
