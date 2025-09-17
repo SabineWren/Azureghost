@@ -1,4 +1,4 @@
-import { Array, DateTime, Flow, S } from "../Lib/math.ts"
+import { Array, DateTime, Flow, S } from "../Lib/pure.ts"
 import { Boss, Kill, type Window } from "./types.ts"
 
 const formatWindow = (x: Window): string =>

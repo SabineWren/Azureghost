@@ -1,5 +1,7 @@
-import "dotenv/config"
-import { Option, Pipe } from "./Lib/math.ts"
+import dotenv from "dotenv"
+import { Option, Pipe } from "./Lib/pure.ts"
+
+dotenv.config({ path: "./secrets.env" })
 
 export const Config = Pipe(
 	Option.Do,

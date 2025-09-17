@@ -40,14 +40,20 @@
 		// Domain model / Data
 		{ "format": "svg", "extensions": [".types.ts"], "icon": "typescriptdef" },
 		{ "format": "svg", "extensions": ["types.ts"], "icon": "typescriptdef", "filename": true },
-		// Library / Business logic
-		{ "format": "svg", "extensions": [".math.ts"], "icon": "haskell" },
-		{ "format": "svg", "extensions": ["math.ts"], "icon": "haskell", "filename": true },
+		// No side effects
+		{ "format": "svg", "extensions": [".pure.ts"], "icon": "haskell" },
+		{ "format": "svg", "extensions": ["pure.ts"], "icon": "haskell", "filename": true },
 		// Tests
 		{ "format": "svg", "extensions": [".test.ts"], "icon": "test", "overrides": "testts" },
 		{ "format": "svg", "extensions": ["test.ts"], "icon": "test", "filename": true },
-		// State management
-		{ "format": "svg", "extensions": [".provider.ts"], "icon": "patch" },
-		{ "format": "svg", "extensions": ["provider.ts"], "icon": "patch", "filename": true }
+		// Random
+		{ "format": "svg", "extensions": [".random.ts"], "icon": "affinityphoto", "overrides": "testts" },
+		{ "format": "svg", "extensions": ["random.ts"], "icon": "affinityphoto", "filename": true },
+		// HTTP or State management
+		{ "format": "svg", "extensions": [".handler.ts"], "icon": "maven" },
+		{ "format": "svg", "extensions": ["handler.ts"], "icon": "maven", "filename": true },
+		// Main / App Entry
+		{ "format": "svg", "extensions": [".entry.ts"], "icon": "mediawiki" },
+		{ "format": "svg", "extensions": ["Main.ts"], "icon": "mediawiki", "filename": true }
 	]
 }

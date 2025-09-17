@@ -22,7 +22,7 @@
 	},
 	"scripts": {
 		"bot": "node --harmony-temporal Main.ts",
-		"register": "node --enable-source-maps Discord/SlashCommands.entry.ts",
+		"register": "node --enable-source-maps SlashCommands.entry.ts",
 		"test": "node --harmony-temporal --enable-source-maps --test-reporter dot --test Main.test.ts",
 		"typecheck": "tsc --watch --project tsconfig.json --preserveWatchOutput",
 		"typecheck-once": "tsc --project tsconfig.json"

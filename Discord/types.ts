@@ -1,4 +1,5 @@
-import {
+import type { APIApplicationCommand } from "discord-api-types/v10"
+import type {
 	ButtonStyleTypes as ButtonStyleTypesEnum,
 	InteractionResponseFlags as InteractionResponseFlagsEnum,
 	InteractionResponseType as InteractionResponseTypeEnum,
@@ -8,6 +9,15 @@ import {
 
 // Re-export enums as pojos.
 // Libs use different TS enums, which break typing despite using the same values.
+
+// This seems to work, but I can't find it in either existing types library.
+export type NewCommand = Omit<
+	APIApplicationCommand,
+	| "application_id"
+	| "id"
+	| "default_member_permissions"
+	| "version"
+>
 
 /**
  * @see {@link https://discord.com/developers/docs/components/reference#button-button-styles}

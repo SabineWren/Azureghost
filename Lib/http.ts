@@ -1,4 +1,4 @@
-import { Pipe } from "./math.ts"
+import { Pipe } from "./pure.ts"
 import { Config } from "../env.ts"
 
 type method = "GET" | "DELETE" | "POST" | "PUT"

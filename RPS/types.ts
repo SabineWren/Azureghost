@@ -1,4 +1,4 @@
-import { Array, Pipe, Record } from "../Lib/math.ts"
+import { Array, Pipe, Record } from "../Lib/pure.ts"
 
 export type RuleName = "Computer" | "Cowboy" | "Paper" | "Rock" | "Scissors" | "Virus" | "Wumpus"
 export type Rule = {

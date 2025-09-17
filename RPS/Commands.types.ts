@@ -1,21 +1,14 @@
-import type { APIApplicationCommand } from "discord-api-types/v10"
-import { RuleDetail } from "./Game.types.ts"
-import { Array, Pipe, Record } from "../Lib/math.ts"
 
-type newCommand = Omit<
-	APIApplicationCommand,
-	| "application_id"
-	| "id"
-	| "default_member_permissions"
-	| "version"
->
+import { RuleDetail } from "./types.ts"
+import { Array, Pipe, Record } from "../Lib/pure.ts"
+import type { NewCommand } from "../Discord/types.ts"
 
 const createCommandChoices = () => Pipe(
 	Record.Keys(RuleDetail),
 	Array.map(x => ({ name: x, value: x.toLowerCase() })),
 )
 
-const _TEST: newCommand = {
+const _TEST: NewCommand = {
 	name: "test",
 	description: "Basic command",
 	type: 1,
@@ -23,7 +16,7 @@ const _TEST: newCommand = {
 	contexts: [0, 1, 2],
 }
 
-const _CHALLENGE: newCommand = {
+const _CHALLENGE: NewCommand = {
 	name: "challenge",
 	description: "Challenge to a match of rock paper scissors",
 	options: [
@@ -40,4 +33,4 @@ const _CHALLENGE: newCommand = {
 	contexts: [0, 2],
 }
 
-export const ALL_COMMANDS: newCommand[] = [_TEST, _CHALLENGE]
+export const ALL_COMMANDS: NewCommand[] = [_TEST, _CHALLENGE]
