@@ -1,5 +1,6 @@
 import type {
 	APIApplicationCommandInteractionDataStringOption,
+	APIApplicationCommandInteractionDataIntegerOption,
 	APIApplicationCommandInteraction,
 	APIInteractionResponse,
 	APIInteractionResponseCallbackData,
@@ -12,29 +13,10 @@ import {
 	MessageComponentTypes,
 } from "../Discord/types.ts"
 
+import { CopyWith, Option, Pipe } from "../Lib/pure.ts"
 import { } from "./Command.types.ts"
 import { ComputeRespawnWindows } from "./pure.ts"
 import { BOSS, Kill, MONTH } from "./types.ts"
-
-export const PREFIX_BOSS_NAME = "boss_name"
-export const ID_SEP = "__"
-
-export const HandleKill = (
-	interactionId: string,
-	option: APIApplicationCommandInteractionDataStringOption,
-): APIInteractionResponse => {
-	const bossName = option.value as keyof typeof BOSS
-
-	const text: APIMessageTopLevelComponent = {
-		type: MessageComponentTypes.TEXT_DISPLAY,
-		content: `Update kill time for ${bossName}`,
-	}
-	const data: APIInteractionResponseCallbackData = {
-		flags: InteractionResponseFlags.IS_COMPONENTS_V2 | InteractionResponseFlags.EPHEMERAL,
-		components: [text],
-	}
-	return { type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE, data: data }
-}
 
 const input: Kill[] = [
 	{
@@ -43,9 +25,30 @@ const input: Kill[] = [
 	},
 ]
 
-const output = ComputeRespawnWindows(input)
-const payload = {
-	"username": "Boss Timers",
-	"content": output,
+export const PREFIX_BOSS_NAME = "boss_name"
+export const ID_SEP = "__"
+
+export const HandleKill = (
+	option: APIApplicationCommandInteractionDataStringOption,
+	optionTime: Option<APIApplicationCommandInteractionDataIntegerOption>,
+): APIInteractionResponse => {
+	const bossName = option.value as keyof typeof BOSS
+	const time = Pipe(
+		optionTime,
+		Option.flatMapNullable(x => x.value as number),
+		Option.getOrElse(() => 0),
+	)
+	console.log("time...", time)
+
+	const output = ComputeRespawnWindows(input)
+
+	const text: APIMessageTopLevelComponent = {
+		type: MessageComponentTypes.TEXT_DISPLAY,
+		content: output,
+	}
+	const data: APIInteractionResponseCallbackData = {
+		flags: InteractionResponseFlags.IS_COMPONENTS_V2,
+		components: [text],
+	}
+	return { type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE, data: data }
 }
-// console.log(JSON.stringify(payload))

@@ -16,7 +16,7 @@ import {
 	InteractionType,
 } from "./Discord/types.ts"
 import { HttpDelete } from "./Lib/http.ts"
-import { Option, Pipe } from "./Lib/pure.ts"
+import { Flow, Option, Pipe } from "./Lib/pure.ts"
 import {
 	HandleChallenge, HandleOptionAccept, HandleOptionSelect,
 	ID_SEP, PREFIX_ACCEPT, PREFIX_SELECT,
@@ -47,6 +47,22 @@ const parseFirstCommandOption = (interaction: APIApplicationCommandInteraction) 
 	Option.Filter(x => x.type === ApplicationCommandOptionType.String)
 )
 
+const parseCommandOption = (i: number, interaction: APIApplicationCommandInteraction) => Pipe(
+	Option.some(interaction.data),
+	Option.Filter(x => x.type === ApplicationCommandType.ChatInput),
+	Option.flatMapNullable(x => x.options),
+	Option.flatMapNullable(xs => xs[i]),
+
+)
+const parseCommandString = Flow(
+	parseCommandOption,
+	Option.Filter(x => x.type === ApplicationCommandOptionType.String),
+)
+const parseCommandInt = Flow(
+	parseCommandOption,
+	Option.Filter(x => x.type === ApplicationCommandOptionType.Integer),
+)
+
 const parseFirstSelectOption = (interaction: APIMessageComponentInteraction) => Pipe(
 	Option.some(interaction.data as APIMessageSelectMenuInteractionData),
 	Option.flatMapNullable(x => x.values),
@@ -72,14 +88,19 @@ const onCommand = (res: Response, interaction: APIApplicationCommandInteraction)
 	case "kill":
 		return Pipe(
 			Option.Do,
-			Option.bind("option", () => parseFirstCommandOption(interaction)),
+			Option.bind("boss", () => parseCommandString(0, interaction)),
+			Option.let("time", () => parseCommandInt(1, interaction)),
 			Option.match({
 				onNone: () => {
+					if (interaction.data.type === ApplicationCommandType.ChatInput)
+						console.log(interaction.data.options)
+					else
+						console.log("Invalid command type", interaction.data.type)
 					console.error("Error validating command args", interaction.data.name)
 					return res.status(400).json({ error: "Error validating command args" })
 				},
-				onSome: ({ option }) =>
-					res.send(HandleKill(interaction.id, option)),
+				onSome: ({ boss, time }) =>
+					res.send(HandleKill(boss, time)),
 			}),
 		)
 	default:

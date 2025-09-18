@@ -33,4 +33,4 @@ const _CHALLENGE = {
 	],
 } as const satisfies NewCommand
 
-export const RPS_COMMANDS: NewCommand[] = [_CHALLENGE]
+export const RPS_COMMANDS: NewCommand[] = []

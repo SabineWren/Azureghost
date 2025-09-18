@@ -15,3 +15,9 @@ export {
 	flow as Flow,
 	pipe as Pipe,
 } from "effect"
+
+
+export const CopyWith = <A>(a: A, changes: Partial<A>): A => ({
+	...a,
+	...changes,
+})
