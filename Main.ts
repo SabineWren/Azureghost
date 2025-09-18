@@ -1,11 +1,13 @@
 import type {
 	APIInteraction,
+	APIApplicationCommandAutocompleteInteraction,
 	APIApplicationCommandInteraction,
 	APIMessageComponentInteraction,
 	APIMessageSelectMenuInteractionData,
+	APIModalSubmitInteraction,
 } from "discord-api-types/v10"
 import { verifyKeyMiddleware } from "discord-interactions"
-import express from "express"
+import express, { type Response } from "express"
 import {
 	ApplicationCommandOptionType,
 	ApplicationCommandType,
@@ -15,12 +17,11 @@ import {
 } from "./Discord/types.ts"
 import { HttpDelete } from "./Lib/http.ts"
 import { Option, Pipe } from "./Lib/pure.ts"
-import { ComputeRespawnWindows } from "./Respawn_Window/pure.ts"
-import { BOSS_VANILLA, Kill, MONTH } from "./Respawn_Window/types.ts"
 import {
+	HandleChallenge, HandleOptionAccept, HandleOptionSelect,
 	ID_SEP, PREFIX_ACCEPT, PREFIX_SELECT,
-	HandleChallenge, HandleOptionAccept, HandleOptionSelect, HandleTest,
 } from "./RPS/handler.ts"
+import { HandleKill } from "./Respawn_Window/handler.ts"
 import { Config } from "./env.ts"
 
 const router = express()
@@ -37,7 +38,7 @@ const parseUserId = (interaction: APIInteraction) => Pipe(
 )
 
 // TODO schema decode?
-// User's object choice -- See Command.types.ts
+// See Command.types.ts
 const parseFirstCommandOption = (interaction: APIApplicationCommandInteraction) => Pipe(
 	Option.some(interaction.data),
 	Option.Filter(x => x.type === ApplicationCommandType.ChatInput),
@@ -52,82 +53,95 @@ const parseFirstSelectOption = (interaction: APIMessageComponentInteraction) => 
 	Option.flatMapNullable(xs => xs[0]),
 )
 
-router.post("/interactions", verifyKeyMiddleware(Config.PUBLIC_KEY), async (req, res) => {
+const onCommand = (res: Response, interaction: APIApplicationCommandInteraction): Response => {
+	switch (interaction.data.name) {
+	case "challenge":
+		return Pipe(
+			Option.Do,
+			Option.bind("userId", () => parseUserId(interaction)),
+			Option.bind("option", () => parseFirstCommandOption(interaction)),
+			Option.match({
+				onNone: () => {
+					console.error("Error validating command args", interaction.data.name)
+					return res.status(400).json({ error: "Error validating command args" })
+				},
+				onSome: ({ option, userId }) =>
+					res.send(HandleChallenge(interaction.id, userId, option)),
+			}),
+		)
+	case "kill":
+		return Pipe(
+			Option.Do,
+			Option.bind("option", () => parseFirstCommandOption(interaction)),
+			Option.match({
+				onNone: () => {
+					console.error("Error validating command args", interaction.data.name)
+					return res.status(400).json({ error: "Error validating command args" })
+				},
+				onSome: ({ option }) =>
+					res.send(HandleKill(interaction.id, option)),
+			}),
+		)
+	default:
+		console.error("unknown command", interaction.data.name)
+		return res.status(400).json({ error: "unknown command" })
+	}
+}
+const onCommandAutocomplete = (res: Response, interaction: APIApplicationCommandAutocompleteInteraction): Response =>
+	res.status(400).json({ error: "unknown autocompletion" })
+
+const onModalSubmit = (res: Response, interaction: APIModalSubmitInteraction): Response =>
+	res.status(400).json({ error: "unknown modal submit" })
+
+const onMessage = (res: Response, interaction: APIMessageComponentInteraction): Response => {
+	const messageId = interaction.message.id
+	const [msgType, gameId] = interaction.data.custom_id.split(ID_SEP)
+	const userId = parseUserId(interaction)
+	const option = parseFirstSelectOption(interaction)
+
+	if (!!gameId && msgType === PREFIX_ACCEPT) {
+		console.log("Message Accept")
+		void HttpDelete(`webhooks/${Config.APP_ID}/${interaction.token}/messages/${messageId}`)
+		return res.send(HandleOptionAccept(gameId))
+	}
+	else if (!!gameId && msgType === PREFIX_SELECT && Option.isSome(userId) && Option.isSome(option)) {
+		console.log("Message Select", option.value)
+		void HttpDelete(`webhooks/${Config.APP_ID}/${interaction.token}/messages/${messageId}`)
+		return res.send(HandleOptionSelect(gameId, userId.value, option.value))
+	}
+	else {
+		console.error("Error validating message args", interaction.data)
+		return res.status(400).json({ error: "Error validating message args" })
+	}
+}
+
+router.post("/interactions", verifyKeyMiddleware(Config.PUBLIC_KEY), (req, res): Response => {
 	const interaction: APIInteraction = req.body
 
 	switch (interaction.type) {
-	// TODO does this ever run? It looks like pings skip this handler.
-	// https://github.com/discord/discord-example-app/blob/main/app.js
 	case InteractionType.PING:
-		console.warn("Ping handler")
+		// Authentication short-circuits on pings
+		// https://github.com/discord/discord-interactions-js/blob/main/src/index.ts
+		console.error("Unexpected ping", JSON.stringify(interaction))
 		return res.send({ type: InteractionResponseType.PONG })
-	case InteractionType.APPLICATION_COMMAND: {
-		switch (interaction.data.name) {
-		case "test":
-			return res.send(HandleTest(interaction))
-		case "challenge":
-			return Pipe(
-				Option.Do,
-				Option.bind("userId", () => parseUserId(interaction)),
-				Option.bind("option", () => parseFirstCommandOption(interaction)),
-				Option.match({
-					onNone: () => {
-						console.error("Error validating command args", interaction.data.name)
-						return res.status(400).json({ error: "Error validating command args" })
-					},
-					onSome: ({ option, userId }) =>
-						res.send(HandleChallenge(interaction.id, userId, option)),
-				}),
-			)
-		default:
-			console.error("unknown command", interaction.data.name)
-			return res.status(400).json({ error: "unknown command" })
-		}
-	}
-	case InteractionType.MESSAGE_COMPONENT: {
-		const messageId = interaction.message.id
-		const [msgType, gameId] = interaction.data.custom_id.split(ID_SEP)
-		const userId = parseUserId(interaction)
-		const option = parseFirstSelectOption(interaction)
-
-		if (!!gameId && msgType === PREFIX_ACCEPT) {
-			await res.send(HandleOptionAccept(gameId))
-			await HttpDelete(`webhooks/${Config.APP_ID}/${interaction.token}/messages/${messageId}`)
-			console.log("Message Accept")
-			return
-		}
-		else if (!!gameId && msgType === PREFIX_SELECT && Option.isSome(userId) && Option.isSome(option)) {
-			await res.send(HandleOptionSelect(gameId, userId.value, option.value))
-			await HttpDelete(`webhooks/${Config.APP_ID}/${interaction.token}/messages/${messageId}`)
-			console.log("Message Select", userId.value, option.value)
-			return
-		}
-		else {
-			console.error("Error validating message args", interaction.data)
-			return res.status(400).json({ error: "Error validating message args" })
-		}
-	}
+	case InteractionType.APPLICATION_COMMAND:
+		return onCommand(res, interaction)
+	case InteractionType.APPLICATION_COMMAND_AUTOCOMPLETE:
+		return onCommandAutocomplete(res, interaction)
+	case InteractionType.MESSAGE_COMPONENT:
+		return onMessage(res, interaction)
+	case InteractionType.MODAL_SUBMIT:
+		return onModalSubmit(res, interaction)
 	default:
+		// @ts-expect-error Enums don't match exhaustively when compared against pojos.
+		interaction satisfies never
 		console.error("unknown interaction type", interaction.type)
 		return res.status(400).json({ error: "unknown interaction type" })
 	}
 })
 
-const input: Kill[] = [
-	{
-		Boss: BOSS_VANILLA.Azuregos,
-		At: Temporal.PlainDateTime.from({ year: 2025, month: MONTH.Jan, day: 1, hour: 14, minute: 5 }),
-	},
-]
-
-const output = ComputeRespawnWindows(input)
-const payload = {
-	"username": "Boss Timers",
-	"content": output,
-}
-// console.log(JSON.stringify(payload))
-
 const PORT = 3000
 router.listen(PORT, () => {
 	console.log("Listening on port " + PORT, PORT)
 });
+

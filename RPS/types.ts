@@ -1,4 +1,4 @@
-import { Array, Pipe, Record } from "../Lib/pure.ts"
+import { Record } from "../Lib/pure.ts"
 
 export type RuleName = "Computer" | "Cowboy" | "Paper" | "Rock" | "Scissors" | "Virus" | "Wumpus"
 export type Rule = {
@@ -75,14 +75,3 @@ export const RuleDetail: { [k in RuleName]: Rule } = {
 		},
 	},
 }
-
-export const ActionOptions = Pipe(
-	Record.Keys(RuleDetail),
-	// Formatted for select menus
-	// https://discord.com/developers/docs/components/reference#string-select-select-option-structure
-	Array.map(x => ({
-		label: x,
-		value: x.toLowerCase(),
-		description: RuleDetail[x].Description,
-	})),
-)

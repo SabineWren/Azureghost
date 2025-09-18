@@ -31,12 +31,11 @@ const request = <I>(
 				m => JSON.stringify(m),
 				m => r.status.toFixed() + "; " + m,
 			))
-		else return r
+		else {
+			console.log(method, r.status)
+			return r
+		}
 	}),
-	resp => {
-		resp.then(x => console.log(x.status, x.url))
-		return resp
-	},
 )
 
 const http = (m: method) => (url: string): Promise<void> =>

@@ -5,14 +5,13 @@ import type {
 	APIInteractionResponseCallbackData,
 	APIMessageTopLevelComponent,
 } from "discord-api-types/v10"
-import {} from "discord-interactions"
 import {
 	ButtonStyleTypes,
 	InteractionResponseFlags,
 	InteractionResponseType,
 	MessageComponentTypes,
 } from "../Discord/types.ts"
-import { Pipe } from "../Lib/pure.ts"
+
 import { DecideOutcome } from "./pure.ts"
 import { ShuffleOptions } from "./random.ts"
 import type { RuleName } from "./types.ts"
@@ -37,7 +36,6 @@ export const HandleChallenge = (
 
 	const text: APIMessageTopLevelComponent = {
 		type: MessageComponentTypes.TEXT_DISPLAY,
-		// Fetches a random emoji to send from a helper function
 		content: `Rock papers scissors challenge from <@${userId}>`,
 	}
 	const actions: APIMessageTopLevelComponent = {
@@ -72,7 +70,7 @@ export const HandleOptionAccept = (gameId: string): APIInteractionResponse => {
 		components: [
 			{
 				type: MessageComponentTypes.STRING_SELECT,
-				custom_id: PREFIX_ACCEPT + ID_SEP + gameId,
+				custom_id: PREFIX_SELECT + ID_SEP + gameId,
 				options: ShuffleOptions(),
 			},
 		],
@@ -100,19 +98,4 @@ export const HandleOptionSelect = (gameId: string, userId: string, option: strin
 		components: [text],
 	}
 	return { type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE, data: data }
-}
-
-export const HandleTest = (cmd: APIApplicationCommandInteraction): APIInteractionResponse => {
-	const text: APIMessageTopLevelComponent = {
-		type: MessageComponentTypes.TEXT_DISPLAY,
-		content: "Hello World!!",
-	}
-	const data: APIInteractionResponseCallbackData = {
-		flags: InteractionResponseFlags.IS_COMPONENTS_V2,
-		components: [text],
-	}
-	return {
-		type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-		data: data,
-	}
 }

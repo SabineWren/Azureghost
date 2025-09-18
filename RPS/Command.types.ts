@@ -10,26 +10,15 @@ import {
 	type NewCommand,
 } from "../Discord/types.ts"
 
-
-const createCommandChoices = () => Pipe(
-	Record.Keys(RuleDetail),
-	Array.map(x => ({ name: x, value: x.toLowerCase() })),
-)
-
-const _TEST: NewCommand = {
-	name: "test",
-	description: "Basic command",
-	type: 1,
-	integration_types: [0, 1],
-	contexts: [0, 1, 2],
-}
-
 const _CHALLENGE_OPTION = {
 	type: ApplicationCommandOptionType.String,
 	name: "object",
 	description: "Pick your object",
 	required: true,
-	choices: createCommandChoices(),
+	choices: Pipe(
+		Record.Keys(RuleDetail),
+		Array.map(x => ({ name: x, value: x })),
+	),
 } as const satisfies APIApplicationCommandOption
 
 const _CHALLENGE = {
@@ -44,4 +33,4 @@ const _CHALLENGE = {
 	],
 } as const satisfies NewCommand
 
-export const ALL_COMMANDS: NewCommand[] = [_TEST, _CHALLENGE]
+export const RPS_COMMANDS: NewCommand[] = [_CHALLENGE]
