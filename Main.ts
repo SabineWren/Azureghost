@@ -17,6 +17,7 @@ import {
 } from "./Discord/types.ts"
 import { HttpDelete } from "./Lib/http.ts"
 import { Flow, Option, Pipe } from "./Lib/pure.ts"
+import { Interaction } from "./Discord/types.ts"
 import {
 	HandleChallenge, HandleOptionAccept, HandleOptionSelect,
 	ID_SEP, PREFIX_ACCEPT, PREFIX_SELECT,

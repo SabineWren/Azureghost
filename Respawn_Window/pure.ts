@@ -1,4 +1,4 @@
-import { Array, DateTime, Flow, S } from "../Lib/pure.ts"
+import { Array, DateTime, Flow, HookR } from "../Lib/pure.ts"
 import { Boss, Kill, type Window } from "./types.ts"
 
 const formatWindow = (x: Window): string =>
@@ -7,7 +7,7 @@ const formatWindow = (x: Window): string =>
 	+ "\n" + `${DateTime.Format(x.Start)} to ${DateTime.Format(x.End)} **-** *Server Time*`
 	+ "\n" + `${DateTime.ToUnix(x.Start)} to ${DateTime.ToUnix(x.End)} **-** *Local Time*`
 
-export const ComputeRespawnWindow = (k: Kill): Window => S(
+export const ComputeRespawnWindow = (k: Kill): Window => HookR(
 	k.At.add(k.Boss.Respawn.Delay),
 	ws => ws.add(k.Boss.Respawn.Length),
 	(ws, we) => ({ Boss: k.Boss, Start: ws, End: we }),

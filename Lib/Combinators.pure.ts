@@ -22,5 +22,13 @@ export const Ψ = <A, B, C>
 	(x: A, y: A): C =>
 		f(g(x), g(y))
 
-export const S = <A, B, C>(x: A, g: (a: A) => B, f: (a: A, b: B) => C): C =>
+
+/**
+ * @yields f(x, g(x))
+ * @param x Argument for both functions
+ * @param g Unary function called on x
+ * @param f Binary function called on x and g(x)
+ * @description Starling, Substitution, ap (Haskell), [Right] Hook (J, I), Monadic After (BQN), 2-train (J)
+ */
+export const HookR = <A, B, C>(x: A, g: (a: A) => B, f: (a: A, b: B) => C): C =>
 	f(x, g(x))

@@ -4,6 +4,8 @@
 		"allowJs": false,
 		"allowImportingTsExtensions": true,
 		"baseUrl": "./",
+		// Needed for Effect Schema
+		// https://github.com/effect-ts/effect/tree/main/packages/schema#requirements
 		"exactOptionalPropertyTypes": true,
 		"forceConsistentCasingInFileNames": true,
 		"importHelpers": true,
