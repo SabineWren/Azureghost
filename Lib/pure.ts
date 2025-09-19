@@ -10,7 +10,7 @@ import type { Option as optionT } from "./Option.pure.ts"
 export type Option<A> = optionT<A>
 
 export * as Record from "./Record.pure.ts"
-export * as S from "./Schema.types.ts"
+export * as S from "./Schema.pure.ts"
 
 export {
 	flow as Flow,

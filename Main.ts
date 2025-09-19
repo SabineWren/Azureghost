@@ -1,7 +1,6 @@
 import type {
-	APIInteraction,
-	APIApplicationCommandAutocompleteInteraction,
-	APIApplicationCommandInteraction,
+	APIApplicationCommandInteractionDataIntegerOption,
+	APIApplicationCommandInteractionDataStringOption,
 	APIMessageComponentInteraction,
 	APIMessageSelectMenuInteractionData,
 	APIModalSubmitInteraction,
@@ -13,11 +12,11 @@ import {
 	ApplicationCommandType,
 	InteractionContextType,
 	InteractionResponseType,
+	Interaction,
 	InteractionType,
 } from "./Discord/types.ts"
 import { HttpDelete } from "./Lib/http.ts"
-import { Flow, Option, Pipe } from "./Lib/pure.ts"
-import { Interaction } from "./Discord/types.ts"
+import { Flow, Option, Pipe, S } from "./Lib/pure.ts"
 import {
 	HandleChallenge, HandleOptionAccept, HandleOptionSelect,
 	ID_SEP, PREFIX_ACCEPT, PREFIX_SELECT,
@@ -28,7 +27,7 @@ import { Config } from "./env.ts"
 const router = express()
 
 // User ID is in user field for (G)DMs, and member for servers.
-const parseUserId = (interaction: APIInteraction) => Pipe(
+const parseUserId = (interaction: Interaction.Interaction) => Pipe(
 	interaction.context,
 	Option.fromNullable,
 	Option.flatMapNullable(context => context === InteractionContextType.Guild
@@ -40,7 +39,7 @@ const parseUserId = (interaction: APIInteraction) => Pipe(
 
 // TODO schema decode?
 // See Command.types.ts
-const parseFirstCommandOption = (interaction: APIApplicationCommandInteraction) => Pipe(
+const parseFirstCommandOption = (interaction: Interaction.ApplicationCommand) => Pipe(
 	Option.some(interaction.data),
 	Option.Filter(x => x.type === ApplicationCommandType.ChatInput),
 	Option.flatMapNullable(x => x.options),
@@ -48,12 +47,11 @@ const parseFirstCommandOption = (interaction: APIApplicationCommandInteraction) 
 	Option.Filter(x => x.type === ApplicationCommandOptionType.String)
 )
 
-const parseCommandOption = (i: number, interaction: APIApplicationCommandInteraction) => Pipe(
+const parseCommandOption = (i: number, interaction: Interaction.ApplicationCommand) => Pipe(
 	Option.some(interaction.data),
 	Option.Filter(x => x.type === ApplicationCommandType.ChatInput),
 	Option.flatMapNullable(x => x.options),
 	Option.flatMapNullable(xs => xs[i]),
-
 )
 const parseCommandString = Flow(
 	parseCommandOption,
@@ -64,13 +62,13 @@ const parseCommandInt = Flow(
 	Option.Filter(x => x.type === ApplicationCommandOptionType.Integer),
 )
 
-const parseFirstSelectOption = (interaction: APIMessageComponentInteraction) => Pipe(
-	Option.some(interaction.data as APIMessageSelectMenuInteractionData),
+const parseFirstSelectOption = (interaction: Interaction.MessageComponent) => Pipe(
+	Option.some(interaction.data),
 	Option.flatMapNullable(x => x.values),
 	Option.flatMapNullable(xs => xs[0]),
 )
 
-const onCommand = (res: Response, interaction: APIApplicationCommandInteraction): Response => {
+const onCommand = (res: Response, interaction: Interaction.ApplicationCommand): Response => {
 	switch (interaction.data.name) {
 	case "challenge":
 		return Pipe(
@@ -83,7 +81,11 @@ const onCommand = (res: Response, interaction: APIApplicationCommandInteraction)
 					return res.status(400).json({ error: "Error validating command args" })
 				},
 				onSome: ({ option, userId }) =>
-					res.send(HandleChallenge(interaction.id, userId, option)),
+					res.send(HandleChallenge(
+						interaction.id,
+						userId,
+						option as APIApplicationCommandInteractionDataStringOption,
+					)),
 			}),
 		)
 	case "kill":
@@ -101,7 +103,10 @@ const onCommand = (res: Response, interaction: APIApplicationCommandInteraction)
 					return res.status(400).json({ error: "Error validating command args" })
 				},
 				onSome: ({ boss, time }) =>
-					res.send(HandleKill(boss, time)),
+					res.send(HandleKill(
+						boss as APIApplicationCommandInteractionDataStringOption,
+						time as Option<APIApplicationCommandInteractionDataIntegerOption>,
+					)),
 			}),
 		)
 	default:
@@ -109,13 +114,10 @@ const onCommand = (res: Response, interaction: APIApplicationCommandInteraction)
 		return res.status(400).json({ error: "unknown command" })
 	}
 }
-const onCommandAutocomplete = (res: Response, interaction: APIApplicationCommandAutocompleteInteraction): Response =>
+const onCommandAutocomplete = (res: Response, interaction: Interaction.ApplicationCommandAutocomplete): Response =>
 	res.status(400).json({ error: "unknown autocompletion" })
 
-const onModalSubmit = (res: Response, interaction: APIModalSubmitInteraction): Response =>
-	res.status(400).json({ error: "unknown modal submit" })
-
-const onMessage = (res: Response, interaction: APIMessageComponentInteraction): Response => {
+const onMessage = (res: Response, interaction: Interaction.MessageComponent): Response => {
 	const messageId = interaction.message.id
 	const [msgType, gameId] = interaction.data.custom_id.split(ID_SEP)
 	const userId = parseUserId(interaction)
@@ -137,8 +139,11 @@ const onMessage = (res: Response, interaction: APIMessageComponentInteraction): 
 	}
 }
 
+const onModalSubmit = (res: Response, interaction: Interaction.ModalSubmit): Response =>
+	res.status(400).json({ error: "unknown modal submit" })
+
 router.post("/interactions", verifyKeyMiddleware(Config.PUBLIC_KEY), (req, res): Response => {
-	const interaction: APIInteraction = req.body
+	const interaction = S.Validate(Interaction.Interaction, req.body)
 
 	switch (interaction.type) {
 	case InteractionType.PING:
@@ -155,9 +160,8 @@ router.post("/interactions", verifyKeyMiddleware(Config.PUBLIC_KEY), (req, res):
 	case InteractionType.MODAL_SUBMIT:
 		return onModalSubmit(res, interaction)
 	default:
-		// @ts-expect-error Enums don't match exhaustively when compared against pojos.
 		interaction satisfies never
-		console.error("unknown interaction type", interaction.type)
+		console.error("unknown interaction type", (interaction as Interaction.Interaction).type)
 		return res.status(400).json({ error: "unknown interaction type" })
 	}
 })

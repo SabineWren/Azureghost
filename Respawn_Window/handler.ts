@@ -1,7 +1,6 @@
 import type {
 	APIApplicationCommandInteractionDataStringOption,
 	APIApplicationCommandInteractionDataIntegerOption,
-	APIApplicationCommandInteraction,
 	APIInteractionResponse,
 	APIInteractionResponseCallbackData,
 	APIMessageTopLevelComponent,

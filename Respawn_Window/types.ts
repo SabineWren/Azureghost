@@ -1,7 +1,7 @@
-import { Schema as S } from "effect"
+import * as S from "../Lib/Schema.types.ts"
 
-const Duration = S.declare((x: unknown) => x instanceof Temporal.Duration)
-const PlainDateTime = S.declare((x: unknown) => x instanceof Temporal.PlainDateTime)
+const Duration = S.Declare((x: unknown) => x instanceof Temporal.Duration)
+const PlainDateTime = S.Declare((x: unknown) => x instanceof Temporal.PlainDateTime)
 
 const Respawn = S.Struct({
 	Delay: Duration,

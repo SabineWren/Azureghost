@@ -10,6 +10,7 @@ import {
 	InteractionResponseFlags,
 	InteractionResponseType,
 	MessageComponentTypes,
+	SelectOptionValue,
 } from "../Discord/types.ts"
 
 import { DecideOutcome } from "./pure.ts"
@@ -82,9 +83,9 @@ export const HandleOptionAccept = (gameId: string): APIInteractionResponse => {
 	return { type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE, data: data }
 }
 
-export const HandleOptionSelect = (gameId: string, userId: string, option: string): APIInteractionResponse => {
+export const HandleOptionSelect = (gameId: string, userId: string, option: SelectOptionValue): APIInteractionResponse => {
 	const outcome: string = activeGames[gameId]
-		? DecideOutcome(activeGames[gameId], { id: userId, objectName: option as RuleName })
+		? DecideOutcome(activeGames[gameId], { id: userId, objectName: option as any as RuleName })
 		: ("No game found " + gameId)
 
 	delete activeGames[gameId]

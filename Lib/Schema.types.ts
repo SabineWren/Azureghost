@@ -1,6 +1,6 @@
 import type { NonEmptyArray } from "./Array.pure.ts"
 import type { Literal } from "./Util.d.ts"
-import { Schema as S } from "effect"
+import * as S from "effect/Schema"
 
 export {
 	Any,
@@ -8,6 +8,7 @@ export {
 	Boolean,
 	brand as Brand,
 	clamp as Clamp,
+	declare as Declare,
 	Int,
 	length as Length,
 	maxItems as MaxItems,
@@ -18,7 +19,7 @@ export {
 	Number,
 	Option,
 	optional as Optional,
-	Schema,
+	type Schema,
 	String,
 	Struct,
 	suspend as Suspend,
