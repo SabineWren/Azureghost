@@ -11,17 +11,13 @@ import {
 	MessageComponentTypes,
 } from "../Discord/types.ts"
 
-import { CopyWith, Option, Pipe } from "../Lib/pure.ts"
+import { CopyWith, DateTime, Option, Record, Pipe } from "../Lib/pure.ts"
 import { } from "./Command.types.ts"
 import { ComputeRespawnWindows } from "./pure.ts"
 import { BOSS, Kill, MONTH } from "./types.ts"
 
-const input: Kill[] = [
-	{
-		Boss: BOSS.Azuregos,
-		At: Temporal.PlainDateTime.from({ year: 2025, month: MONTH.Jan, day: 1, hour: 14, minute: 5 }),
-	},
-]
+const tInitial = Temporal.PlainDateTime.from({ year: 2025, month: MONTH.Jan, day: 1, hour: 14, minute: 5 })
+let state = Record.MapValues(BOSS, (v, k): Kill => ({ Boss: v, At: tInitial }))
 
 export const PREFIX_BOSS_NAME = "boss_name"
 export const ID_SEP = "__"
@@ -30,15 +26,18 @@ export const HandleKill = (
 	option: InteractionDataOption.ApplicationCommandString,
 	optionTime: Option<InteractionDataOption.ApplicationCommandInt>,
 ): APIInteractionResponse => {
-	const bossName = option.value as keyof typeof BOSS
 	const time = Pipe(
 		optionTime,
-		Option.flatMapNullable(x => x.value as number),
+		Option.flatMapNullable(x => x.value),
 		Option.getOrElse(() => 0),
+		x => Temporal.Now.zonedDateTimeISO().subtract({ minutes: x }),
+		x => x.toPlainDateTime(),
 	)
-	console.log("time...", time)
+	const bossName = option.value as keyof typeof BOSS
+	state[bossName] = CopyWith(state[bossName], { At: time })
+	console.log("time...", DateTime.Format(time))
 
-	const output = ComputeRespawnWindows(input)
+	const output = ComputeRespawnWindows(Record.Values(state))
 
 	const text: APIMessageTopLevelComponent = {
 		type: MessageComponentTypes.TEXT_DISPLAY,
