@@ -1,12 +1,11 @@
 import type {
-	APIApplicationCommandInteractionDataStringOption,
-	APIApplicationCommandInteractionDataIntegerOption,
 	APIInteractionResponse,
 	APIInteractionResponseCallbackData,
 	APIMessageTopLevelComponent,
 } from "discord-api-types/v10"
 import {
 	ButtonStyleTypes,
+	InteractionDataOption,
 	InteractionResponseFlags,
 	InteractionResponseType,
 	MessageComponentTypes,
@@ -28,8 +27,8 @@ export const PREFIX_BOSS_NAME = "boss_name"
 export const ID_SEP = "__"
 
 export const HandleKill = (
-	option: APIApplicationCommandInteractionDataStringOption,
-	optionTime: Option<APIApplicationCommandInteractionDataIntegerOption>,
+	option: InteractionDataOption.ApplicationCommandString,
+	optionTime: Option<InteractionDataOption.ApplicationCommandInt>,
 ): APIInteractionResponse => {
 	const bossName = option.value as keyof typeof BOSS
 	const time = Pipe(

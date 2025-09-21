@@ -7,6 +7,7 @@ import type {
 } from "discord-api-types/v10"
 import { verifyKeyMiddleware } from "discord-interactions"
 import express, { type Response } from "express"
+import { ParseCommandInt, ParseCommandString, ParseUserId } from "./Discord/pure.ts"
 import {
 	ApplicationCommandOptionType,
 	ApplicationCommandType,
@@ -14,6 +15,7 @@ import {
 	InteractionResponseType,
 	Interaction,
 	InteractionType,
+	InteractionDataOption,
 } from "./Discord/types.ts"
 import { HttpDelete } from "./Lib/http.ts"
 import { Flow, Option, Pipe, S } from "./Lib/pure.ts"
@@ -26,42 +28,6 @@ import { Config } from "./env.ts"
 
 const router = express()
 
-// User ID is in user field for (G)DMs, and member for servers.
-const parseUserId = (interaction: Interaction.Interaction) => Pipe(
-	interaction.context,
-	Option.fromNullable,
-	Option.flatMapNullable(context => context === InteractionContextType.Guild
-		? interaction.member?.user
-		: interaction.user,
-	),
-	Option.map(x => x.id),
-)
-
-// TODO schema decode?
-// See Command.types.ts
-const parseFirstCommandOption = (interaction: Interaction.ApplicationCommand) => Pipe(
-	Option.some(interaction.data),
-	Option.Filter(x => x.type === ApplicationCommandType.ChatInput),
-	Option.flatMapNullable(x => x.options),
-	Option.flatMapNullable(xs => xs[0]),
-	Option.Filter(x => x.type === ApplicationCommandOptionType.String)
-)
-
-const parseCommandOption = (i: number, interaction: Interaction.ApplicationCommand) => Pipe(
-	Option.some(interaction.data),
-	Option.Filter(x => x.type === ApplicationCommandType.ChatInput),
-	Option.flatMapNullable(x => x.options),
-	Option.flatMapNullable(xs => xs[i]),
-)
-const parseCommandString = Flow(
-	parseCommandOption,
-	Option.Filter(x => x.type === ApplicationCommandOptionType.String),
-)
-const parseCommandInt = Flow(
-	parseCommandOption,
-	Option.Filter(x => x.type === ApplicationCommandOptionType.Integer),
-)
-
 const parseFirstSelectOption = (interaction: Interaction.MessageComponent) => Pipe(
 	Option.some(interaction.data),
 	Option.flatMapNullable(x => x.values),
@@ -73,8 +39,8 @@ const onCommand = (res: Response, interaction: Interaction.ApplicationCommand): 
 	case "challenge":
 		return Pipe(
 			Option.Do,
-			Option.bind("userId", () => parseUserId(interaction)),
-			Option.bind("option", () => parseFirstCommandOption(interaction)),
+			Option.bind("userId", () => ParseUserId(interaction)),
+			Option.bind("option", () => ParseCommandString(0, interaction)),
 			Option.match({
 				onNone: () => {
 					console.error("Error validating command args", interaction.data.name)
@@ -91,22 +57,18 @@ const onCommand = (res: Response, interaction: Interaction.ApplicationCommand): 
 	case "kill":
 		return Pipe(
 			Option.Do,
-			Option.bind("boss", () => parseCommandString(0, interaction)),
-			Option.let("time", () => parseCommandInt(1, interaction)),
+			Option.bind("boss", () => ParseCommandString(0, interaction)),
+			Option.let("time", () => ParseCommandInt(1, interaction)),
 			Option.match({
 				onNone: () => {
 					if (interaction.data.type === ApplicationCommandType.ChatInput)
-						console.log(interaction.data.options)
+						console.log("Error validating command", interaction.data.name, interaction.data.options)
 					else
-						console.log("Invalid command type", interaction.data.type)
-					console.error("Error validating command args", interaction.data.name)
-					return res.status(400).json({ error: "Error validating command args" })
+						console.log("Error validating command", interaction.data.name, interaction.data.type)
+					return res.status(400).json({ error: "Error validating command" })
 				},
 				onSome: ({ boss, time }) =>
-					res.send(HandleKill(
-						boss as APIApplicationCommandInteractionDataStringOption,
-						time as Option<APIApplicationCommandInteractionDataIntegerOption>,
-					)),
+					res.send(HandleKill(boss, time)),
 			}),
 		)
 	default:
@@ -120,7 +82,7 @@ const onCommandAutocomplete = (res: Response, interaction: Interaction.Applicati
 const onMessage = (res: Response, interaction: Interaction.MessageComponent): Response => {
 	const messageId = interaction.message.id
 	const [msgType, gameId] = interaction.data.custom_id.split(ID_SEP)
-	const userId = parseUserId(interaction)
+	const userId = ParseUserId(interaction)
 	const option = parseFirstSelectOption(interaction)
 
 	if (!!gameId && msgType === PREFIX_ACCEPT) {
