@@ -2,7 +2,7 @@ import { Array, DateTime, Flow, HookR } from "../Lib/pure.ts"
 import { Boss, Kill, type Window } from "./types.ts"
 
 const formatWindow = (x: Window): string =>
-	x.Boss.Name + " " + x.Boss.Emoji
+	x.Boss.Emoji + "  " + x.Boss.Name
 	// TODO: Server time changes with UK DST.
 	+ "\n" + `${DateTime.Format(x.Start)} to ${DateTime.Format(x.End)} **-** *Server Time*`
 	+ "\n" + `${DateTime.ToUnix(x.Start)} to ${DateTime.ToUnix(x.End)} **-** *Local Time*`

@@ -35,7 +35,7 @@ export const HandleKill = (
 	)
 	const bossName = option.value as keyof typeof BOSS
 	state[bossName] = CopyWith(state[bossName], { At: time })
-	console.log("time...", DateTime.Format(time))
+	console.log("time: ", DateTime.Format(time))
 
 	const output = ComputeRespawnWindows(Record.Values(state))
 
