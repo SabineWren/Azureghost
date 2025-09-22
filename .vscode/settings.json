@@ -49,6 +49,9 @@
 		// Random
 		{ "format": "svg", "extensions": [".random.ts"], "icon": "affinityphoto", "overrides": "testts" },
 		{ "format": "svg", "extensions": ["random.ts"], "icon": "affinityphoto", "filename": true },
+		// Database
+		{ "format": "svg", "extensions": [".db.ts"], "icon": "db" },
+		{ "format": "svg", "extensions": ["db.ts"], "icon": "db", "filename": true },
 		// HTTP or State management
 		{ "format": "svg", "extensions": [".handler.ts"], "icon": "maven" },
 		{ "format": "svg", "extensions": ["handler.ts"], "icon": "maven", "filename": true },

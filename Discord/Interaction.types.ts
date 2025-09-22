@@ -1,14 +1,14 @@
 import { S, Pipe } from "../Lib/pure.ts"
 import { InteractionContextType, InteractionType } from "./Enum.types.ts"
 import * as InteractionData from "./InteractionData.types.ts"
-import { Channel, Entitlement, Guild, GuildMember, Message, Snowflake, User } from "./Root.types.ts"
+import { Channel, Entitlement, Guild, GuildId, GuildMember, Message, Snowflake, User } from "./Root.types.ts"
 
 const interactionBase = S.Struct({
 	id: Snowflake,
 	/** ID of the application this interaction is for */
 	application_id: Snowflake,
 	guild: S.Optional(Guild),
-	guild_id: S.Optional(Snowflake),
+	guild_id: S.Optional(GuildId),
 	channel: S.Optional(Channel),
 	channel_id: S.Optional(Snowflake),
 	/** Guild member data for the invoking user, including permissions */

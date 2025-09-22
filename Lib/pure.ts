@@ -1,6 +1,8 @@
 export * as Array from "./Array.pure.ts"
 export * from "./Combinators.pure.ts"
 export * as DateTime from "./DateTime.pure.ts"
+export * as Dict from "./Dict.pure.ts"
+export * from "./Function.pure.ts"
 
 // Re-export aliases the entire module to "Option",
 // but we want to expose the type "Option" without requiring namespace "Option.Option".
@@ -11,12 +13,6 @@ export type Option<A> = optionT<A>
 
 export * as Record from "./Record.pure.ts"
 export * as S from "./Schema.pure.ts"
-
-export {
-	flow as Flow,
-	pipe as Pipe,
-} from "effect"
-
 
 export const CopyWith = <A>(a: A, changes: Partial<A>): A => ({
 	...a,

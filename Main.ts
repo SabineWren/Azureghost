@@ -34,7 +34,7 @@ const parseFirstSelectOption = (interaction: Interaction.MessageComponent) => Pi
 	Option.flatMapNullable(xs => xs[0]),
 )
 
-const onCommand = (res: Response, interaction: Interaction.ApplicationCommand): Response => {
+const onCommand = async (res: Response, interaction: Interaction.ApplicationCommand): Promise<Response> => {
 	switch (interaction.data.name) {
 	case "challenge":
 		return Pipe(
@@ -57,6 +57,7 @@ const onCommand = (res: Response, interaction: Interaction.ApplicationCommand): 
 	case "kill":
 		return Pipe(
 			Option.Do,
+			Option.bind("gId", () => Option.fromNullable(interaction.guild_id)),
 			Option.bind("boss", () => ParseCommandString(0, interaction)),
 			Option.let("time", () => ParseCommandInt(1, interaction)),
 			Option.match({
@@ -67,8 +68,8 @@ const onCommand = (res: Response, interaction: Interaction.ApplicationCommand): 
 						console.log("Error validating command", interaction.data.name, interaction.data.type)
 					return res.status(400).json({ error: "Error validating command" })
 				},
-				onSome: ({ boss, time }) =>
-					res.send(HandleKill(boss, time)),
+				onSome: ({ gId, boss, time }) =>
+					HandleKill(gId, boss, time).then(x => res.send(x)),
 			}),
 		)
 	default:
@@ -104,7 +105,7 @@ const onMessage = (res: Response, interaction: Interaction.MessageComponent): Re
 const onModalSubmit = (res: Response, interaction: Interaction.ModalSubmit): Response =>
 	res.status(400).json({ error: "unknown modal submit" })
 
-router.post("/interactions", verifyKeyMiddleware(Config.PUBLIC_KEY), (req, res): Response => {
+router.post("/interactions", verifyKeyMiddleware(Config.PUBLIC_KEY), async (req, res): Promise<Response> => {
 	const interaction = S.Validate(Interaction.Interaction, req.body)
 
 	switch (interaction.type) {

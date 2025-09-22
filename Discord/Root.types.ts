@@ -7,6 +7,9 @@ export type Snowflake = typeof Snowflake.Type
 // https://discord.com/developers/docs/resources/guild#guild-object
 export const Guild = S.Any// TODO
 
+export const GuildId = Pipe(Snowflake, S.Brand("GuildId"))
+export type GuildId = typeof GuildId.Type
+
 // partial emoji object	id, name, and animated
 export const Emoji = S.Any// TODO
 

@@ -2,6 +2,9 @@ import { Record as EffectRecord } from "effect"
 import type { NonEmptyArray } from "./Array.pure.ts"
 import type { EmptyRecord, NotMap } from "./Record.types.ts"
 
+export const Entries = <K extends PropertyKey, V>(o: Record<K, V>) =>
+	Object.entries(o) as typeof o extends EmptyRecord ? never[] : NonEmptyArray<[K, V]>
+
 export const Keys = <R extends Record<PropertyKey, any>>(r: R): Array<keyof R> =>
 	Object.keys(r)
 

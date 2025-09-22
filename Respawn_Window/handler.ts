@@ -5,39 +5,49 @@ import type {
 } from "discord-api-types/v10"
 import {
 	ButtonStyleTypes,
+	GuildId,
 	InteractionDataOption,
 	InteractionResponseFlags,
 	InteractionResponseType,
 	MessageComponentTypes,
 } from "../Discord/types.ts"
 
-import { CopyWith, DateTime, Option, Record, Pipe } from "../Lib/pure.ts"
+import { DateTime, Dict, Option, Record, Pipe } from "../Lib/pure.ts"
 import { } from "./Command.types.ts"
+import { GetKills, UpdateKill, UpdateTime } from "./db.ts"
 import { ComputeRespawnWindows } from "./pure.ts"
 import { BOSS, Kill, MONTH } from "./types.ts"
-
-const tInitial = Temporal.PlainDateTime.from({ year: 2025, month: MONTH.Jan, day: 1, hour: 14, minute: 5 })
-let state = Record.MapValues(BOSS, (v, k): Kill => ({ Boss: v, At: tInitial }))
 
 export const PREFIX_BOSS_NAME = "boss_name"
 export const ID_SEP = "__"
 
-export const HandleKill = (
+export const HandleKill = async (
+	gId: GuildId,
 	option: InteractionDataOption.ApplicationCommandString,
 	optionTime: Option<InteractionDataOption.ApplicationCommandInt>,
-): APIInteractionResponse => {
-	const time = Pipe(
+): Promise<APIInteractionResponse> => {
+	const bossName = option.value as keyof typeof BOSS
+	/*
+	TODO:
+	1. Change args to partial PlainTimeTime args.
+	2. If args negative, use 'now' then subtract.
+	   ex. { hours: -1, minutes: 42 } --> from({ minutes: 42 }).subtract({ hours: 1 })
+	3. Move this to logic pure code
+	*/
+	await Pipe(
 		optionTime,
 		Option.flatMapNullable(x => x.value),
 		Option.getOrElse(() => 0),
 		x => Temporal.Now.zonedDateTimeISO().subtract({ minutes: x }),
 		x => x.toPlainDateTime(),
+		time => UpdateTime(gId, bossName, time)
 	)
-	const bossName = option.value as keyof typeof BOSS
-	state[bossName] = CopyWith(state[bossName], { At: time })
-	console.log("time: ", DateTime.Format(time))
 
-	const output = ComputeRespawnWindows(Record.Values(state))
+	const output = Pipe(
+		await GetKills(gId),
+		Dict.Values,
+		ComputeRespawnWindows,
+	)
 
 	const text: APIMessageTopLevelComponent = {
 		type: MessageComponentTypes.TEXT_DISPLAY,
