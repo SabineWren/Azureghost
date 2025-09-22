@@ -1,3 +1,4 @@
+export * as ApplicationCommandOption from "./ApplicationCommandOption.types.ts"
 export * from "./Component.types.ts"
 export * from "./Enum.types.ts"
 export * as Interaction from "./Interaction.types.ts"

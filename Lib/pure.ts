@@ -3,6 +3,8 @@ export * from "./Combinators.pure.ts"
 export * as DateTime from "./DateTime.pure.ts"
 export * as Dict from "./Dict.pure.ts"
 export * from "./Function.pure.ts"
+export * from "./types.ts"
+export type * from "./types.ts"
 
 // Re-export aliases the entire module to "Option",
 // but we want to expose the type "Option" without requiring namespace "Option.Option".

@@ -7,7 +7,7 @@ import type {
 } from "discord-api-types/v10"
 import { verifyKeyMiddleware } from "discord-interactions"
 import express, { type Response } from "express"
-import { ParseCommandInt, ParseCommandString, ParseUserId } from "./Discord/pure.ts"
+import { ParseCommandOptions, ParseCommandString, ParseUserId } from "./Discord/pure.ts"
 import {
 	ApplicationCommandOptionType,
 	ApplicationCommandType,
@@ -59,7 +59,9 @@ const onCommand = async (res: Response, interaction: Interaction.ApplicationComm
 			Option.Do,
 			Option.bind("gId", () => Option.fromNullable(interaction.guild_id)),
 			Option.bind("boss", () => ParseCommandString(0, interaction)),
-			Option.let("time", () => ParseCommandInt(1, interaction)),
+			Option.let("options", () =>
+				ParseCommandOptions(interaction).filter(x => x.type === ApplicationCommandOptionType.Integer)
+			),
 			Option.match({
 				onNone: () => {
 					if (interaction.data.type === ApplicationCommandType.ChatInput)
@@ -68,8 +70,8 @@ const onCommand = async (res: Response, interaction: Interaction.ApplicationComm
 						console.log("Error validating command", interaction.data.name, interaction.data.type)
 					return res.status(400).json({ error: "Error validating command" })
 				},
-				onSome: ({ gId, boss, time }) =>
-					HandleKill(gId, boss, time).then(x => res.send(x)),
+				onSome: ({ gId, boss, options }) =>
+					HandleKill(gId, boss, options).then(x => res.send(x)),
 			}),
 		)
 	default:

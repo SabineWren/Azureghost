@@ -1,4 +1,4 @@
-import { S, Pipe } from "../Lib/pure.ts"
+import { S, Pipe, type ValuesOf } from "../Lib/pure.ts"
 
 /** @see {@link https://discord.com/developers/docs/reference#snowflakes} */
 export const Snowflake = Pipe(S.String, S.Brand("Snowflake"))
@@ -21,6 +21,7 @@ export const componentInteractionResponse = S.Any// TODO
 
 // https://discord.com/developers/docs/resources/channel#channel-object
 export const Channel = S.Any// TODO
+export type Channel = typeof Channel.Type
 
 // https://discord.com/developers/docs/resources/guild#guild-member-object
 export const GuildMember = S.Any// TODO
@@ -33,3 +34,46 @@ export const Message = S.Any// TODO
 
 // https://discord.com/developers/docs/resources/entitlement#entitlement-object
 export const Entitlement = S.Any// TODO
+
+/** @see {@link https://discord.com/developers/docs/reference#locales} */
+export const Locale = {
+	Indonesian: "id",
+	EnglishUS: "en-US",
+	EnglishGB: "en-GB",
+	Bulgarian: "bg",
+	ChineseCN: "zh-CN",
+	ChineseTW: "zh-TW",
+	Croatian: "hr",
+	Czech: "cs",
+	Danish: "da",
+	Dutch: "nl",
+	Finnish: "fi",
+	French: "fr",
+	German: "de",
+	Greek: "el",
+	Hindi: "hi",
+	Hungarian: "hu",
+	Italian: "it",
+	Japanese: "ja",
+	Korean: "ko",
+	Lithuanian: "lt",
+	Norwegian: "no",
+	Polish: "pl",
+	PortugueseBR: "pt-BR",
+	Romanian: "ro",
+	Russian: "ru",
+	SpanishES: "es-ES",
+	SpanishLATAM: "es-419",
+	Swedish: "sv-SE",
+	Thai: "th",
+	Turkish: "tr",
+	Ukrainian: "uk",
+	Vietnamese: "vi"
+} as const
+export type Locale = ValuesOf<typeof Locale>
+
+export const LocalizationMap = S.Partial(S.Record({
+	key: S.Enum(Locale),
+	value: S.NullOr(S.String)
+}))
+export type LocalizationMap = typeof LocalizationMap.Type

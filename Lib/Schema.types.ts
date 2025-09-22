@@ -1,6 +1,21 @@
 import type { NonEmptyArray } from "./Array.pure.ts"
+import { Flow, Pipe } from "./Function.pure.ts"
 import type { Literal } from "./Util.d.ts"
 import * as S from "effect/Schema"
+
+export type AnySchema = S.Schema.AnyNoContext
+
+export const DefaultLazy = <S extends AnySchema>(d: () => S.Schema.Type<S>) => Flow(
+	S.propertySignature<S>,
+	S.withConstructorDefault(d),
+)
+export const Default = <S extends AnySchema>(d: S.Schema.Type<S>) =>
+	DefaultLazy(() => d)
+
+export const DefaultLiteral = <T extends Literal>(t: T) => Pipe(
+	S.Literal(t),
+	Default(t),
+)
 
 export {
 	Any,
@@ -17,10 +32,15 @@ export {
 	minItems as MinItems,
 	minLength as MinLength,
 	Literal,
+	lowercased as Lowercase,
+	Lowercased as LowercaseString,
+	NullOr,
 	Number,
 	omit as Omit,
 	Option,
 	optional as Optional,
+	partial as Partial,
+	Record,
 	type Schema,
 	String,
 	Struct,

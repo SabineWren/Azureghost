@@ -1,10 +1,10 @@
-import { Array, CopyWith, DateTime, Dict, Flow, Option, Record, Pipe } from "../Lib/pure.ts"
-import { BOSS, Kill, MONTH } from "./types.ts"
+import { Array, CopyWith, DateTime, Dict, Flow, Month, Option, Record, Pipe } from "../Lib/pure.ts"
+import { BOSS, Kill } from "./types.ts"
 import { GuildId } from "../Discord/types.ts"
 
 type bossName = keyof typeof BOSS
 
-const tInitial = Temporal.PlainDateTime.from({ year: 2025, month: MONTH.Jan, day: 1, hour: 14, minute: 5 })
+const tInitial = Temporal.PlainDateTime.from({ year: 2025, month: Month.Jan, day: 1, hour: 14, minute: 5 })
 const sInitial: Map<bossName, Kill> = Pipe(
 	BOSS,
 	Record.MapValues((v, k): Kill => ({ Boss: v, At: tInitial })),

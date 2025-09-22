@@ -5,7 +5,7 @@ import {
 	Interaction,
 	InteractionDataOption,
 } from "./types.ts"
-import { Flow, Option, Pipe } from "../Lib/pure.ts"
+import { Array, Flow, Option, Pipe } from "../Lib/pure.ts"
 
 /** User ID is in user field for (G)DMs, and member for servers. */
 export const ParseUserId = (interaction: Interaction.Interaction) => Pipe(
@@ -18,11 +18,21 @@ export const ParseUserId = (interaction: Interaction.Interaction) => Pipe(
 	Option.map(x => x.id),
 )
 
-const parseCommandOption = (i: number, interaction: Interaction.ApplicationCommand) => Pipe(
+export const ParseCommandOptions = (
+	interaction: Interaction.ApplicationCommand,
+): readonly InteractionDataOption.ApplicationCommand[] => Pipe(
 	Option.some(interaction.data),
 	Option.Filter(x => x.type === ApplicationCommandType.ChatInput),
 	Option.flatMapNullable(x => x.options),
-	Option.flatMapNullable(xs => xs[i]),
+	Option.getOrElse(() => []),
+)
+
+const parseCommandOption = (
+	i: number,
+	interaction: Interaction.ApplicationCommand,
+): Option<InteractionDataOption.ApplicationCommand> => Pipe(
+	ParseCommandOptions(interaction),
+	Array.get(i),
 )
 
 export const ParseCommandString:

@@ -12,11 +12,11 @@ import {
 	MessageComponentTypes,
 } from "../Discord/types.ts"
 
-import { DateTime, Dict, Option, Record, Pipe } from "../Lib/pure.ts"
-import { } from "./Command.types.ts"
+import { Array, DateTime, Dict, Option, Record, Pipe } from "../Lib/pure.ts"
+import { KillTimeOption } from "./Command.types.ts"
 import { GetKills, UpdateKill, UpdateTime } from "./db.ts"
 import { ComputeRespawnWindows } from "./pure.ts"
-import { BOSS, Kill, MONTH } from "./types.ts"
+import { BOSS, Kill } from "./types.ts"
 
 export const PREFIX_BOSS_NAME = "boss_name"
 export const ID_SEP = "__"
@@ -24,21 +24,26 @@ export const ID_SEP = "__"
 export const HandleKill = async (
 	gId: GuildId,
 	option: InteractionDataOption.ApplicationCommandString,
-	optionTime: Option<InteractionDataOption.ApplicationCommandInt>,
+	dateTimeOptions: readonly InteractionDataOption.ApplicationCommandInt[],
 ): Promise<APIInteractionResponse> => {
 	const bossName = option.value as keyof typeof BOSS
+	const now = Temporal.Now.zonedDateTimeISO()
 	/*
 	TODO:
 	1. Change args to partial PlainTimeTime args.
 	2. If args negative, use 'now' then subtract.
 	   ex. { hours: -1, minutes: 42 } --> from({ minutes: 42 }).subtract({ hours: 1 })
-	3. Move this to logic pure code
 	*/
+	const getOption = (k: keyof typeof KillTimeOption) => Pipe(
+		dateTimeOptions,
+		Array.findFirst(x => x.name === KillTimeOption[k].name),
+		Option.map(x => x.value),
+	)
+	const days = getOption("day")
+
 	await Pipe(
-		optionTime,
-		Option.flatMapNullable(x => x.value),
-		Option.getOrElse(() => 0),
-		x => Temporal.Now.zonedDateTimeISO().subtract({ minutes: x }),
+		0,
+		x => now.subtract({ minutes: x }),
 		x => x.toPlainDateTime(),
 		time => UpdateTime(gId, bossName, time)
 	)
