@@ -2,121 +2,7 @@ import { S, Pipe } from "../Lib/pure.ts"
 import { ApplicationCommandOptionType } from "./Enum.types.ts"
 import { Snowflake } from "./Root.types.ts"
 
-type base = { name: string }
-
-export type ApplicationCommandAttachment = base & {
-	type: typeof ApplicationCommandOptionType.Attachment
-	value: Snowflake
-}
-export type ApplicationCommandBoolean = base & {
-	type: typeof ApplicationCommandOptionType.Boolean
-	value: boolean
-}
-export type ApplicationCommandChannel = base & {
-	type: typeof ApplicationCommandOptionType.Channel
-	value: Snowflake
-}
-export type ApplicationCommandInt = base & {
-	type: typeof ApplicationCommandOptionType.Integer
-	value: number
-	focused?: undefined | boolean
-}
-export type ApplicationCommandMentionable = base & {
-	type: typeof ApplicationCommandOptionType.Mentionable
-	value: Snowflake
-}
-export type ApplicationCommandNumber = base & {
-	type: typeof ApplicationCommandOptionType.Number
-	value: number
-	focused?: undefined | boolean
-}
-export type ApplicationCommandRole = base & {
-	type: typeof ApplicationCommandOptionType.Role
-	value: Snowflake
-}
-export type ApplicationCommandString = base & {
-	type: typeof ApplicationCommandOptionType.String
-	value: string
-	focused?: undefined | boolean
-}
-export type ApplicationCommandUser = base & {
-	type: typeof ApplicationCommandOptionType.User
-	value: Snowflake
-}
-
-export type ApplicationCommandSubcommand = base & {
-	type: typeof ApplicationCommandOptionType.Subcommand
-	options: readonly ApplicationCommand[]
-}
-export type ApplicationCommandSubcommandGroup = base & {
-	type: typeof ApplicationCommandOptionType.SubcommandGroup
-	options: readonly ApplicationCommand[]
-}
-
-export type ApplicationCommand =
-	// Leaves
-	| ApplicationCommandAttachment
-	| ApplicationCommandBoolean
-	| ApplicationCommandChannel
-	| ApplicationCommandInt
-	| ApplicationCommandMentionable
-	| ApplicationCommandNumber
-	| ApplicationCommandRole
-	| ApplicationCommandString
-	| ApplicationCommandUser
-	// Roots
-	| ApplicationCommandSubcommand
-	| ApplicationCommandSubcommandGroup
-
-type applicationCommandAttachmentE = base & {
-	type: typeof ApplicationCommandOptionType.Attachment
-	value: typeof Snowflake.Encoded
-}
-type applicationCommandChannelE = base & {
-	type: typeof ApplicationCommandOptionType.Channel
-	value: typeof Snowflake.Encoded
-}
-type applicationCommandMentionableE = base & {
-	type: typeof ApplicationCommandOptionType.Mentionable
-	value: typeof Snowflake.Encoded
-}
-type applicationCommandRoleE = base & {
-	type: typeof ApplicationCommandOptionType.Role
-	value: typeof Snowflake.Encoded
-}
-type applicationCommandUserE = base & {
-	type: typeof ApplicationCommandOptionType.User
-	value: typeof Snowflake.Encoded
-}
-
-type applicationCommandSubcommandE = base & {
-	type: typeof ApplicationCommandOptionType.Subcommand
-	options: readonly applicationCommandE[]
-}
-type applicationCommandSubcommandGroupE = base & {
-	type: typeof ApplicationCommandOptionType.SubcommandGroup
-	options: readonly applicationCommandE[]
-}
-
-// https://github.com/Effect-TS/effect/issues/2874
-type applicationCommandE =
-	// Leaves
-	| applicationCommandAttachmentE
-	| ApplicationCommandBoolean
-	| applicationCommandChannelE
-	| ApplicationCommandInt
-	| applicationCommandMentionableE
-	| ApplicationCommandNumber
-	| applicationCommandRoleE
-	| ApplicationCommandString
-	| applicationCommandUserE
-	// Roots
-	| applicationCommandSubcommandE
-	| applicationCommandSubcommandGroupE
-
-// Schemas get gnarly here because trees are mutually recursive. Typedefs enforce correctness.
 const base = S.Struct({ name: S.String })
-
 export const ApplicationCommandAttachment = S.Struct({
 	...base.fields,
 	type: S.Literal(ApplicationCommandOptionType.Attachment),
@@ -197,3 +83,60 @@ export const ApplicationCommand = S.Union(
 	ApplicationCommandSubcommand,
 	ApplicationCommandSubcommandGroup,
 )
+
+type base = { name: string }
+export type ApplicationCommandAttachment = typeof ApplicationCommandAttachment.Type
+export type ApplicationCommandBoolean = typeof ApplicationCommandBoolean.Type
+export type ApplicationCommandChannel = typeof ApplicationCommandChannel.Type
+export type ApplicationCommandInt = typeof ApplicationCommandInt.Type
+export type ApplicationCommandMentionable = typeof ApplicationCommandMentionable.Type
+export type ApplicationCommandNumber = typeof ApplicationCommandNumber.Type
+export type ApplicationCommandRole = typeof ApplicationCommandRole.Type
+export type ApplicationCommandString = typeof ApplicationCommandString.Type
+export type ApplicationCommandUser = typeof ApplicationCommandUser.Type
+export type ApplicationCommandSubcommand = base & {
+	type: typeof ApplicationCommandOptionType.Subcommand
+	options: readonly ApplicationCommand[]
+}
+export type ApplicationCommandSubcommandGroup = base & {
+	type: typeof ApplicationCommandOptionType.SubcommandGroup
+	options: readonly ApplicationCommand[]
+}
+
+export type ApplicationCommand =
+	// Leaves
+	| ApplicationCommandAttachment
+	| ApplicationCommandBoolean
+	| ApplicationCommandChannel
+	| ApplicationCommandInt
+	| ApplicationCommandMentionable
+	| ApplicationCommandNumber
+	| ApplicationCommandRole
+	| ApplicationCommandString
+	| ApplicationCommandUser
+	// Roots
+	| ApplicationCommandSubcommand
+	| ApplicationCommandSubcommandGroup
+
+// Schemas get gnarly here because trees are mutually recursive. Typedefs enforce correctness.
+// https://github.com/Effect-TS/effect/issues/2874
+type applicationCommandE =
+	// Leaves
+	| typeof ApplicationCommandAttachment.Encoded
+	| typeof ApplicationCommandBoolean.Encoded
+	| typeof ApplicationCommandChannel.Encoded
+	| typeof ApplicationCommandInt.Encoded
+	| typeof ApplicationCommandMentionable.Encoded
+	| typeof ApplicationCommandNumber.Encoded
+	| typeof ApplicationCommandRole.Encoded
+	| typeof ApplicationCommandString.Encoded
+	| typeof ApplicationCommandUser.Encoded
+	// Roots
+	| base & {
+		type: typeof ApplicationCommandOptionType.Subcommand
+		options: readonly applicationCommandE[]
+	}
+	| base & {
+		type: typeof ApplicationCommandOptionType.SubcommandGroup
+		options: readonly applicationCommandE[]
+	}

@@ -2,16 +2,16 @@ import { Record as EffectRecord } from "effect"
 import type { NonEmptyArray } from "./Array.pure.ts"
 import type { EmptyRecord, NotMap } from "./Record.types.ts"
 
+export const IsEmpty = EffectRecord.isEmptyRecord
+
+export const FromEntries = EffectRecord.fromEntries
+
+// Conversions
 export const Entries = <K extends PropertyKey, V>(o: Record<K, V>) =>
 	Object.entries(o) as typeof o extends EmptyRecord ? never[] : NonEmptyArray<[K, V]>
 
 export const Keys = <R extends Record<PropertyKey, any>>(r: R): Array<keyof R> =>
 	Object.keys(r)
-
-export const MapValues: {
-	<Key extends PropertyKey, A, B>(self: { readonly [K in Key]: A }, f: (a: A, key: NoInfer<Key>) => B): Record<Key, B>
-	<Key extends PropertyKey, A, B>(f: (a: A, key: NoInfer<Key>) => B): (self: { readonly [K in Key]: A }) => Record<Key, B>
-} = EffectRecord.map
 
 export const Values = <
 	K extends PropertyKey,
@@ -19,3 +19,19 @@ export const Values = <
 	Rec extends Record<K, V>,
 >(o: Record<K, V> & NotMap<Rec>) =>
 	Object.values(o) as typeof o extends EmptyRecord ? never[] : NonEmptyArray<V>
+
+// Transforms
+export const MapKeys = EffectRecord.mapKeys
+
+export const MapValues: {
+	<Key extends PropertyKey, A, B>(self: { readonly [K in Key]: A }, f: (a: A, key: NoInfer<Key>) => B): Record<Key, B>
+	<Key extends PropertyKey, A, B>(f: (a: A, key: NoInfer<Key>) => B): (self: { readonly [K in Key]: A }) => Record<Key, B>
+} = EffectRecord.map
+
+// Selections
+export const Filter: {
+	<Key extends PropertyKey, A, B extends A>(self: { readonly [K in Key]: A }, f: (a: A, key: NoInfer<Key>) => a is B): Record<Key, B>
+	<Key extends PropertyKey, A, B extends A>(f: (a: A, key: NoInfer<Key>) => a is B): (self: { readonly [K in Key]: A }) => Record<Key, B>
+	<Key extends PropertyKey, A>(self: { readonly [K in Key]: A }, f: (a: A, key: NoInfer<Key>) => boolean): Record<Key, A>
+	<Key extends PropertyKey, A>(f: (a: A, key: NoInfer<Key>) => boolean): (self: { readonly [K in Key]: A }) => Record<Key, A>
+} = EffectRecord.filter

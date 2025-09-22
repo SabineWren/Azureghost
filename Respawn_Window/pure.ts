@@ -1,5 +1,24 @@
-import { Array, DateTime, Flow, HookR } from "../Lib/pure.ts"
+import { Array, DateTime, Dict, Flow, HookR, Option, Record, Pipe } from "../Lib/pure.ts"
 import { Boss, Kill, type Window } from "./types.ts"
+import { Tuple } from "effect"
+
+export const AlterDateTime = (
+	d: Temporal.ZonedDateTime,
+	changes: readonly (readonly [Temporal.DateTimeUnit, number])[],
+): Temporal.ZonedDateTime => {
+	const [positives, negatives] = Pipe(
+		Array.Partition(changes, ([k, v]) => v >= 0),
+		Tuple.mapSecond(Array.map(([k, v]) => [
+			(k + "s") as keyof Temporal.DurationLike,
+			v * -1,
+		] as const)),
+	)
+	return Pipe(
+		d,
+		x => Array.isEmptyArray(positives) ? x : x.with(Record.FromEntries(positives)),
+		x => Array.isEmptyArray(negatives) ? x : x.subtract(Record.FromEntries(negatives)),
+	)
+}
 
 const formatWindow = (x: Window): string =>
 	x.Boss.Emoji + "  " + x.Boss.Name

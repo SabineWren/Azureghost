@@ -13,9 +13,9 @@ import {
 } from "../Discord/types.ts"
 
 import { Array, DateTime, Dict, Option, Record, Pipe } from "../Lib/pure.ts"
-import { KillTimeOption } from "./Command.types.ts"
+import {} from "./Command.types.ts"
 import { GetKills, UpdateKill, UpdateTime } from "./db.ts"
-import { ComputeRespawnWindows } from "./pure.ts"
+import { AlterDateTime, ComputeRespawnWindows } from "./pure.ts"
 import { BOSS, Kill } from "./types.ts"
 
 export const PREFIX_BOSS_NAME = "boss_name"
@@ -28,25 +28,14 @@ export const HandleKill = async (
 ): Promise<APIInteractionResponse> => {
 	const bossName = option.value as keyof typeof BOSS
 	const now = Temporal.Now.zonedDateTimeISO()
-	/*
-	TODO:
-	1. Change args to partial PlainTimeTime args.
-	2. If args negative, use 'now' then subtract.
-	   ex. { hours: -1, minutes: 42 } --> from({ minutes: 42 }).subtract({ hours: 1 })
-	*/
-	const getOption = (k: keyof typeof KillTimeOption) => Pipe(
-		dateTimeOptions,
-		Array.findFirst(x => x.name === KillTimeOption[k].name),
-		Option.map(x => x.value),
-	)
-	const days = getOption("day")
 
 	await Pipe(
-		0,
-		x => now.subtract({ minutes: x }),
+		dateTimeOptions,
+		Array.map(x => [x.name as Temporal.DateTimeUnit, x.value] as const),
+		x => AlterDateTime(now, x),
 		x => x.toPlainDateTime(),
-		time => UpdateTime(gId, bossName, time)
-	)
+		x => UpdateTime(gId, bossName, x),
+	) satisfies void
 
 	const output = Pipe(
 		await GetKills(gId),
