@@ -60,7 +60,7 @@ export const KillTimeOption = [
 	}),
 ] as const
 
-const _KILL = {
+export const COMMANDS: NewCommand[] = [{
 	name: "kill",
 	description: "Update kill time for a boss",
 	// TODO remove cast
@@ -68,6 +68,4 @@ const _KILL = {
 	type: ApplicationCommandType.ChatInput,
 	integration_types: [ApplicationIntegrationType.GuildInstall],
 	contexts: [InteractionContextType.Guild],
-} as const satisfies NewCommand
-
-export const COMMANDS: NewCommand[] = [_KILL]
+}]

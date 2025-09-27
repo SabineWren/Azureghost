@@ -1,7 +1,7 @@
 import * as S from "../Lib/Schema.types.ts"
 
 const Duration = S.Declare((x: unknown) => x instanceof Temporal.Duration)
-const PlainDateTime = S.Declare((x: unknown) => x instanceof Temporal.PlainDateTime)
+const ZonedDateTime = S.Declare((x: unknown) => x instanceof Temporal.ZonedDateTime)
 
 const Respawn = S.Struct({
 	Delay: Duration,
@@ -16,7 +16,7 @@ export const Boss = S.Struct({
 
 export const Kill = S.Struct({
 	Boss: Boss,
-	At: PlainDateTime,
+	At: ZonedDateTime,
 })
 
 export type Respawn = typeof Respawn.Type
@@ -25,8 +25,8 @@ export type Kill = typeof Kill.Type
 
 export type Window = {
 	Boss: Boss
-	Start: Temporal.PlainDateTime
-	End: Temporal.PlainDateTime
+	Start: Temporal.ZonedDateTime
+	End: Temporal.ZonedDateTime
 }
 
 export const BOSS = {

@@ -1,1 +1,1 @@
-import "./Respawn_Window/test.ts"
+import "./Lib/test.ts"

@@ -1,23 +1,23 @@
-import { pipe } from "effect"
+import { pipe, Tuple } from "effect"
+import * as Array from "./Array.pure.ts"
+import { Flow, Pipe } from "./Function.pure.ts"
+import * as Option from "./Option.pure.ts"
+import * as Record from "./Record.pure.ts"
 
-export const ToUnix = (d: Temporal.PlainDateTime): string => pipe(
-	toDate(d),
-	d => d.getTime(),
+export const ToUnix = (d: Temporal.ZonedDateTime): string => pipe(
+	d.epochMilliseconds,
 	d => Math.floor(d / 1000),
 	d => `<t:${d}:f>`,
 )
 
-// TODO customize time zones with Temporal.
-// old way 1: d.setHours(d.getHours() - 1)
-// old way 2: Intl.DateTimeFormatOptions
-export const Format = (d: Temporal.PlainDateTime, locale?: Intl.UnicodeBCP47LocaleIdentifier, options?: Intl.DateTimeFormatOptions): string => {
+export const Format = (d: Temporal.ZonedDateTime, locale?: Intl.UnicodeBCP47LocaleIdentifier, options?: Intl.DateTimeFormatOptions): string => {
 	const opt = options ? { ..._DATE_OPTIONS, ...options } : _DATE_OPTIONS
+	opt.timeZone = d.timeZoneId
 	// en-AU because it avoids the confusion of numeric mm/dd/yy formats.
-	return toDate(d).toLocaleString(locale ?? "en-AU", opt)
+	return new Date(d.epochMilliseconds).toLocaleString(locale ?? "en-AU", opt)
 }
 
 const _DATE_OPTIONS: Intl.DateTimeFormatOptions = {
-	timeZone: "UTC",//"Europe/London",
 	month: "short",
 	day: "2-digit",
 	hour: "2-digit",
@@ -29,5 +29,45 @@ const _DATE_OPTIONS: Intl.DateTimeFormatOptions = {
 	hourCycle: "h23",
 }
 
-const toDate = (d: Temporal.PlainDateTime): Date =>
-	new Date(d.toString())
+export const KeyOfPlainDateTimeLike = [
+	"year", "month", "day", "hour", "minute", "second", "millisecond", "nanosecond",
+] as const satisfies (keyof Temporal.PlainDateTimeLike)[]
+export type KeyOfPlainDateTimeLike = typeof KeyOfPlainDateTimeLike[number]
+
+export const KeyOfDurationLike = [
+	"years", "months", "days", "hours", "minutes", "seconds", "milliseconds", "nanoseconds",
+] as const satisfies (keyof Temporal.DurationLike)[]
+export type KeyOfDurationLike = typeof KeyOfDurationLike[number]
+
+const keyTimeToDuration: { [k in KeyOfPlainDateTimeLike]: KeyOfDurationLike} = {
+	"year": "years",
+	"month": "months",
+	"day": "days",
+	"hour": "hours",
+	"minute": "minutes",
+	"second": "seconds",
+	"millisecond": "milliseconds",
+	"nanosecond": "nanoseconds",
+}
+
+export const ZonedDateTimeWith = (
+	d: Temporal.ZonedDateTime,
+	xs: Iterable<readonly [string, number]>,
+): Temporal.ZonedDateTime => Pipe(
+	xs,
+	Array.Choose(([n, v]) => Pipe(
+		Array.findFirst(KeyOfPlainDateTimeLike, y => y === n),
+		Option.map(name => [name, v] as const),
+	)),
+	options => {
+		const [positives, negatives] = Pipe(
+			Array.Partition(options, ([k, v]) => v >= 0),
+			Tuple.mapSecond(Array.map(([k, v]) => [keyTimeToDuration[k], v * -1] as const)),
+		)
+		return Pipe(
+			d,
+			x => Array.isEmptyArray(positives) ? x : x.with(Record.FromEntries(positives)),
+			x => Array.isEmptyArray(negatives) ? x : x.subtract(Record.FromEntries(negatives)),
+		)
+	},
+)

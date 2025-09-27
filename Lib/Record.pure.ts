@@ -4,7 +4,9 @@ import type { EmptyRecord, NotMap } from "./Record.types.ts"
 
 export const IsEmpty = EffectRecord.isEmptyRecord
 
-export const FromEntries = EffectRecord.fromEntries
+export const FromEntries: <K extends PropertyKey, V extends any>(
+  entries: Iterable<readonly [K, V]>,
+) => Partial<Record<K, V>> = Object.fromEntries
 
 // Conversions
 export const Entries = <K extends PropertyKey, V>(o: Record<K, V>) =>

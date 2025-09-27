@@ -1,9 +1,8 @@
 import { dual as Dual } from "effect/Function"
 import { Option as EffectOption } from "effect"
+import type { None, Option, Some } from "./Option.types.ts"
 
-export type Some<A> = EffectOption.Some<A>
-export type None<A> = EffectOption.None<A>
-export type Option<A> = None<A> | Some<A>
+export * from "./Option.types.ts"
 
 export {
 	all,

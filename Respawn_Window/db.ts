@@ -2,9 +2,11 @@ import { Array, CopyWith, DateTime, Dict, Flow, Month, Option, Record, Pipe } fr
 import { BOSS, Kill } from "./types.ts"
 import { GuildId } from "../Discord/types.ts"
 
+// TODO store server timezone "UTC", "Europe/London"
+
 type bossName = keyof typeof BOSS
 
-const tInitial = Temporal.PlainDateTime.from({ year: 2025, month: Month.Jan, day: 1, hour: 14, minute: 5 })
+const tInitial = Temporal.ZonedDateTime.from({ year: 2025, month: Month.Jan, day: 1, hour: 14, minute: 5 })
 const sInitial: Map<bossName, Kill> = Pipe(
 	BOSS,
 	Record.MapValues((v, k): Kill => ({ Boss: v, At: tInitial })),
@@ -27,7 +29,7 @@ export const UpdateKill = (gId: GuildId, name: bossName, k: Kill): Promise<void>
 		x => Promise.resolve(x),// TODO persist
 	))
 
-export const UpdateTime = (gId: GuildId, name: bossName, t: Temporal.PlainDateTime): Promise<void> =>
+export const UpdateTime = (gId: GuildId, name: bossName, t: Temporal.ZonedDateTime): Promise<void> =>
 	GetKills(gId).then(Flow(
 		Dict.Get(name),
 		Option.match({

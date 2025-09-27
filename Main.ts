@@ -7,7 +7,7 @@ import type {
 } from "discord-api-types/v10"
 import { verifyKeyMiddleware } from "discord-interactions"
 import express, { type Response } from "express"
-import { ParseCommandOptions, ParseCommandString, ParseUserId } from "./Discord/pure.ts"
+import { GetCommandOptions, ParseCommandString, ParseUserId } from "./Discord/pure.ts"
 import {
 	ApplicationCommandOptionType,
 	ApplicationCommandType,
@@ -55,25 +55,12 @@ const onCommand = async (res: Response, interaction: Interaction.ApplicationComm
 			}),
 		)
 	case "kill":
-		return Pipe(
-			Option.Do,
-			Option.bind("gId", () => Option.fromNullable(interaction.guild_id)),
-			Option.bind("boss", () => ParseCommandString(0, interaction)),
-			Option.let("options", () =>
-				ParseCommandOptions(interaction).filter(x => x.type === ApplicationCommandOptionType.Integer)
-			),
-			Option.match({
-				onNone: () => {
-					if (interaction.data.type === ApplicationCommandType.ChatInput)
-						console.log("Error validating command", interaction.data.name, interaction.data.options)
-					else
-						console.log("Error validating command", interaction.data.name, interaction.data.type)
-					return res.status(400).json({ error: "Error validating command" })
-				},
-				onSome: ({ gId, boss, options }) =>
-					HandleKill(gId, boss, options).then(x => res.send(x)),
-			}),
-		)
+		return HandleKill(interaction).then(x => {
+			switch(x.Status) {
+			case 200: return res.send(x.Payload)
+			case 400: return res.status(x.Status).json({ error: x.Error })
+			}
+		})
 	default:
 		console.error("unknown command", interaction.data.name)
 		return res.status(400).json({ error: "unknown command" })

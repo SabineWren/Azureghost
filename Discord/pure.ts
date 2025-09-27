@@ -18,7 +18,7 @@ export const ParseUserId = (interaction: Interaction.Interaction) => Pipe(
 	Option.map(x => x.id),
 )
 
-export const ParseCommandOptions = (
+export const GetCommandOptions = (
 	interaction: Interaction.ApplicationCommand,
 ): readonly InteractionDataOption.ApplicationCommand[] => Pipe(
 	Option.some(interaction.data),
@@ -31,7 +31,7 @@ const parseCommandOption = (
 	i: number,
 	interaction: Interaction.ApplicationCommand,
 ): Option<InteractionDataOption.ApplicationCommand> => Pipe(
-	ParseCommandOptions(interaction),
+	GetCommandOptions(interaction),
 	Array.get(i),
 )
 
