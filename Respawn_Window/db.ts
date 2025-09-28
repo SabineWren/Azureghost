@@ -1,40 +1,56 @@
-import { Array, CopyWith, DateTime, Dict, Flow, Month, Option, Record, Pipe } from "../Lib/pure.ts"
+import { Array, CopyWith, DateTime, Dict, Flow, Month, Option, Record, S, Pipe } from "../Lib/pure.ts"
 import { BOSS, type BossName, Kill } from "./types.ts"
 import { GuildId } from "../Discord/types.ts"
 
-// TODO store server timezone "UTC", "Europe/London"
+const guildState = S.Struct({
+	TimeZone: S.String,// TODO store server timezone "UTC", "Europe/London"
+	Enabled: S.Set(S.String),
+	DeathTime: S.Map({ key: S.String, value: S.ZonedDateTime })
+})
+type guildState = typeof guildState.Type
+const defaultGuild: guildState = {
+	TimeZone: "UTC",
+	Enabled: new Set(),
+	DeathTime: new Map(),
+}
+let state = new Map<GuildId, guildState>()
 
-const tInitial = Temporal.ZonedDateTime.from({ timeZone: "UTC", year: 2025, month: Month.Jan, day: 1, hour: 14, minute: 5 })
-const sInitial: Map<BossName, Kill> = Pipe(
-	BOSS,
-	Record.MapValues((v, k): Kill => ({ Boss: v, At: tInitial })),
-	Record.Entries,
-	xs => new Map(xs),
-)
+// TODO persist
+const getGuild = (gId: GuildId): Promise<guildState> => {
+	const s = state.get(gId)
+	return Promise.resolve (s ? s : defaultGuild)
+}
 
-let state = new Map<GuildId, Map<BossName, Kill>>()
+export const GetKills = (gId: GuildId): Promise<Kill[]> =>
+	getGuild(gId).then(s => Pipe(
+		Record.Entries(BOSS),
+		Array.FilterMap(
+			([k, v]) => s.Enabled.has(k) && s.DeathTime.has(k),
+			([k, v]): Kill => ({ Boss: v, At: s.DeathTime.get(k)! }),
+		),
+))
 
-export const GetKills = (gId: GuildId): Promise<Map<BossName, Kill>> => Pipe(
-	Dict.Get(state, gId),
-	x => Promise.resolve(x),// TODO persist
-	x => x.then(Option.getOrElse(() => sInitial)),
-)
+export const SaveTime = async (gId: GuildId, name: BossName, t: Temporal.ZonedDateTime): Promise<void> => {
+	const s = await getGuild(gId)
+	Pipe(
+		Dict.Set(s.DeathTime, name, t),
+		x => CopyWith(s, { DeathTime: x }),
+		x => state.set(gId, x),
+	)
+}
 
-const updateKill = (gId: GuildId, name: BossName, k: Kill): Promise<void> =>
-	GetKills(gId).then(Flow(
-		Dict.Set(name, k),
-		next => void state.set(gId, next),
-		x => Promise.resolve(x),// TODO persist
-	))
+export const SaveTimeZone = async (gId: GuildId, tz: string): Promise<void> => {
+	const s = await getGuild(gId)
+	state.set(gId, CopyWith(s, { TimeZone: tz }))
+}
 
-export const SaveTime = (gId: GuildId, name: BossName, t: Temporal.ZonedDateTime): Promise<void> =>
-	GetKills(gId).then(Flow(
-		Dict.Get(name),
-		Option.match({
-			onNone: () => {
-				console.error("Save time for invalid boss", name)
-				return Promise.resolve(void 0)
-			},
-			onSome: x => updateKill(gId, name, CopyWith(x, { At: t }))
-		}),
-	))
+export const ToggleEnabled = async (gId: GuildId, name: BossName, b: boolean): Promise<void> => {
+	const s = await getGuild(gId)
+
+	// TODO add set Lib
+	const setCopy = new Set(s.Enabled)
+	if (b) setCopy.add(name)
+	else setCopy.delete(name)
+
+	state.set(gId, CopyWith(s, { Enabled: setCopy }))
+}

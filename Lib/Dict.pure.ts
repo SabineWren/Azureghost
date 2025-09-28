@@ -1,7 +1,7 @@
 import { CurryRev } from "./Function.pure.ts"
 import * as Option from "./Option.pure.ts"
 
-export type Dict<K, V> = Map<K, V>
+export type Dict<K, V> = ReadonlyMap<K, V>
 type Option<A> = Option.Option<A>
 
 // -----------------------------------------------------------------------------
@@ -26,9 +26,9 @@ export const Values = <K, V>(map: Dict<K, V>): V[] => [...map.values()]
 // -----------------------------------------------------------------------------
 
 export const Alter_Mut: {
-	<K, V>(map: Dict<K, V>, k: K, f: (v: Option<V>) => Option<V>): void
-	<K, V>(k: K, f: (v: Option<V>) => Option<V>): (map: Dict<K, V>) => void
-} = CurryRev(<K, V>(map: Dict<K, V>, k: K, f: (v: Option<V>) => Option<V>) => {
+	<K, V>(map: Map<K, V>, k: K, f: (v: Option<V>) => Option<V>): void
+	<K, V>(k: K, f: (v: Option<V>) => Option<V>): (map: Map<K, V>) => void
+} = CurryRev(<K, V>(map: Map<K, V>, k: K, f: (v: Option<V>) => Option<V>) => {
 	Option.match(f(Option.fromNullable(map.get(k))), {
 		onSome: v => map.set(k, v),
 		onNone: () => map.delete(k),

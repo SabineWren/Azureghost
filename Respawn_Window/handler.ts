@@ -60,8 +60,8 @@ export const HandleKill = (cmd: Interaction.ApplicationCommand): Promise<APIInte
 	)),
 )
 
-const msgRespawnWindows = (kills: Map<BossName, Kill>): APIInteractionResponse => {
-	const output = Pipe(kills, Dict.Values, ComputeRespawnWindows)
+const msgRespawnWindows = (kills: readonly Kill[]): APIInteractionResponse => {
+	const output = ComputeRespawnWindows(kills)
 
 	const text: APIMessageComponent = {
 		type: MessageComponentTypes.TEXT_DISPLAY,

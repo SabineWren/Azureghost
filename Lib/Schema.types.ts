@@ -17,6 +17,9 @@ export const DefaultLiteral = <T extends Literal>(t: T) => Pipe(
 	Default(t),
 )
 
+export const Duration = S.declare((x: unknown) => x instanceof Temporal.Duration)
+export const ZonedDateTime = S.declare((x: unknown) => x instanceof Temporal.ZonedDateTime)
+
 export {
 	Any,
 	Array,
@@ -40,6 +43,8 @@ export {
 	Option,
 	optional as Optional,
 	partial as Partial,
+	ReadonlyMap as Map,
+	ReadonlySet as Set,
 	Record,
 	type Schema,
 	String,
