@@ -1,6 +1,4 @@
-import * as S from "../Lib/Schema.types.ts"
-
-
+import { Record, S } from "../Lib/pure.ts"
 
 const Respawn = S.Struct({
 	Delay: S.Duration,
@@ -85,3 +83,5 @@ export const BOSS = {
 	},
 } as const satisfies Record<string, Boss>
 export type BossName = keyof typeof BOSS
+
+export const BossNames = Record.Keys(BOSS)

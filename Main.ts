@@ -19,7 +19,7 @@ import {
 } from "./Discord/types.ts"
 import { HttpDelete } from "./Lib/http.ts"
 import { Flow, Option, Pipe, S } from "./Lib/pure.ts"
-import { HandleKill } from "./Respawn_Window/handler.ts"
+import { HandleKill, HandleTimeZone } from "./Respawn_Window/handler.ts"
 import { Config } from "./env.ts"
 
 const router = express()
@@ -34,6 +34,8 @@ const onCommand = async (res: Response, interaction: Interaction.ApplicationComm
 	switch (interaction.data.name) {
 	case "kill":
 		return HandleKill(interaction).then(x => res.send(x))
+	case "timezone":
+		return HandleTimeZone(interaction).then(x => res.send(x))
 	default:
 		console.error("unknown command", interaction.data.name)
 		return res.status(400).json({ error: "unknown command" })

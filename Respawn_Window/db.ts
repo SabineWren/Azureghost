@@ -1,5 +1,5 @@
 import { Array, CopyWith, DateTime, Dict, Flow, Month, Option, Record, S, Pipe } from "../Lib/pure.ts"
-import { BOSS, type BossName, Kill } from "./types.ts"
+import { BOSS, type BossName, BossNames, Kill } from "./types.ts"
 import { GuildId } from "../Discord/types.ts"
 
 const guildState = S.Struct({
@@ -10,10 +10,10 @@ const guildState = S.Struct({
 type guildState = typeof guildState.Type
 const defaultGuild: guildState = {
 	TimeZone: "UTC",
-	Enabled: new Set(),
+	Enabled: new Set(BossNames),
 	DeathTime: new Map(),
 }
-let state = new Map<GuildId, guildState>()
+const state = new Map<GuildId, guildState>()
 
 // TODO persist
 const getGuild = (gId: GuildId): Promise<guildState> => {
@@ -39,7 +39,10 @@ export const SaveTime = async (gId: GuildId, name: BossName, t: Temporal.ZonedDa
 	)
 }
 
-export const SaveTimeZone = async (gId: GuildId, tz: string): Promise<void> => {
+export const TimeZoneGet = (gId: GuildId): Promise<string> =>
+	getGuild(gId).then(x => x.TimeZone)
+
+export const TimeZoneSet = async (gId: GuildId, tz: string): Promise<void> => {
 	const s = await getGuild(gId)
 	state.set(gId, CopyWith(s, { TimeZone: tz }))
 }

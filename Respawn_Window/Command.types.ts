@@ -1,6 +1,6 @@
 
 import type {} from "discord-api-types/v10"
-import { BOSS } from "./types.ts"
+import { BOSS, BossNames } from "./types.ts"
 import { Array, DateTime, Month, Pipe, Record } from "../Lib/pure.ts"
 import {
 	ApplicationCommandOption,
@@ -14,10 +14,13 @@ const optionBoss = ApplicationCommandOption.String.make({
 	name: "boss",
 	description: "Which boss died?",
 	required: true,
-	choices: Pipe(
-		Record.Keys(BOSS),
-		Array.map(x => ({ name: x, value: x })),
-	),
+	choices: Array.map(BossNames, x => ({ name: x, value: x })),
+})
+
+const optionTimeZone = ApplicationCommandOption.String.make({
+	name: "timezone",
+	description: "Server time zone. Necessary for data entry and output formatting.",
+	required: true,
 })
 
 export const KillTimeOption = [
@@ -60,12 +63,22 @@ export const KillTimeOption = [
 	}),
 ] as const
 
-export const COMMANDS: NewCommand[] = [{
-	name: "kill",
-	description: "Update kill time for a boss",
-	// TODO remove cast
-	options: [optionBoss, ...KillTimeOption] satisfies ApplicationCommandOption.Union[] as any,
-	type: ApplicationCommandType.ChatInput,
-	integration_types: [ApplicationIntegrationType.GuildInstall],
-	contexts: [InteractionContextType.Guild],
-}]
+export const COMMANDS: NewCommand[] = [
+	{
+		name: "kill",
+		description: "Update kill time for a boss",
+		// TODO remove cast
+		options: [optionBoss, ...KillTimeOption] satisfies ApplicationCommandOption.Union[] as any,
+		type: ApplicationCommandType.ChatInput,
+		integration_types: [ApplicationIntegrationType.GuildInstall],
+		contexts: [InteractionContextType.Guild],
+	},
+	{
+		name: "timezone",
+		description: "Update server time zone",
+		options: [optionTimeZone],
+		type: ApplicationCommandType.ChatInput,
+		integration_types: [ApplicationIntegrationType.GuildInstall],
+		contexts: [InteractionContextType.Guild],
+	},
+]
