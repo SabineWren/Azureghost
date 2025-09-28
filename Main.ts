@@ -19,10 +19,6 @@ import {
 } from "./Discord/types.ts"
 import { HttpDelete } from "./Lib/http.ts"
 import { Flow, Option, Pipe, S } from "./Lib/pure.ts"
-import {
-	HandleChallenge, HandleOptionAccept, HandleOptionSelect,
-	ID_SEP, PREFIX_ACCEPT, PREFIX_SELECT,
-} from "./RPS/handler.ts"
 import { HandleKill } from "./Respawn_Window/handler.ts"
 import { Config } from "./env.ts"
 
@@ -36,24 +32,6 @@ const parseFirstSelectOption = (interaction: Interaction.MessageComponent) => Pi
 
 const onCommand = async (res: Response, interaction: Interaction.ApplicationCommand): Promise<Response> => {
 	switch (interaction.data.name) {
-	case "challenge":
-		return Pipe(
-			Option.Do,
-			Option.bind("userId", () => ParseUserId(interaction)),
-			Option.bind("option", () => ParseCommandString(0, interaction)),
-			Option.match({
-				onNone: () => {
-					console.error("Error validating command args", interaction.data.name)
-					return res.status(400).json({ error: "Error validating command args" })
-				},
-				onSome: ({ option, userId }) =>
-					res.send(HandleChallenge(
-						interaction.id,
-						userId,
-						option as APIApplicationCommandInteractionDataStringOption,
-					)),
-			}),
-		)
 	case "kill":
 		return HandleKill(interaction).then(x => res.send(x))
 	default:
@@ -66,24 +44,11 @@ const onCommandAutocomplete = (res: Response, interaction: Interaction.Applicati
 
 const onMessage = (res: Response, interaction: Interaction.MessageComponent): Response => {
 	const messageId = interaction.message.id
-	const [msgType, gameId] = interaction.data.custom_id.split(ID_SEP)
+	// interaction.data.custom_id
 	const userId = ParseUserId(interaction)
 	const option = parseFirstSelectOption(interaction)
-
-	if (!!gameId && msgType === PREFIX_ACCEPT) {
-		console.log("Message Accept")
-		void HttpDelete(`webhooks/${Config.APP_ID}/${interaction.token}/messages/${messageId}`)
-		return res.send(HandleOptionAccept(gameId))
-	}
-	else if (!!gameId && msgType === PREFIX_SELECT && Option.isSome(userId) && Option.isSome(option)) {
-		console.log("Message Select", option.value)
-		void HttpDelete(`webhooks/${Config.APP_ID}/${interaction.token}/messages/${messageId}`)
-		return res.send(HandleOptionSelect(gameId, userId.value, option.value))
-	}
-	else {
-		console.error("Error validating message args", interaction.data)
-		return res.status(400).json({ error: "Error validating message args" })
-	}
+	// void HttpDelete(`webhooks/${Config.APP_ID}/${interaction.token}/messages/${messageId}`)
+	return res.status(400).json({ error: "Message handlers not implemented" })
 }
 
 const onModalSubmit = (res: Response, interaction: Interaction.ModalSubmit): Response =>
