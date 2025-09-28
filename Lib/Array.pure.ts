@@ -46,10 +46,23 @@ export const Includes = <A extends Comparable, B extends Comparable>(
 ): boolean =>
 	xs.includes(y)
 
-export const Partition = <T>(xs: readonly T[], pred: (x: T, i: number) => boolean): [T[], T[]] => [
-	xs.filter((x, i) => pred(x, i)),
-	xs.filter((x, i) => !pred(x, i)),
-]
+export const Partition: {
+	<A, B extends A>(xs: readonly A[], pred: (x: A, i: number) => x is B): [B[], A[]]
+	<A, B extends A>(pred: (x: A, i: number) => x is B): (xs: readonly A[]) => [B[], A[]]
+	<A>(xs: readonly A[], pred: (x: A, i: number) => boolean): [A[], A[]]
+	<A>(pred: (x: A, i: number) => boolean): (xs: readonly A[]) => [A[], A[]]
+} = CurryRev(
+	<A>(xs: readonly A[], pred: (x: A, i: number) => boolean): [A[], A[]] => {
+	const l: A[] = []
+	const r: A[] = []
+	let i=0
+	for (const x of xs) {
+		if (pred(x, i)) l.push(x)
+		else r.push(x)
+		i++
+	}
+	return [l, r]
+})
 
 export const SortBy: {
 	<A, B>(xs: readonly A[], proj: (x: A) => B, cmp: (x: B, y: B) => -1 | 0 | 1): A[]

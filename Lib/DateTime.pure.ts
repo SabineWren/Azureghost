@@ -1,10 +1,10 @@
-import { pipe, Tuple } from "effect"
+import { Tuple } from "effect"
 import * as Array from "./Array.pure.ts"
-import { Flow, Pipe } from "./Function.pure.ts"
+import { Pipe } from "./Function.pure.ts"
 import * as Option from "./Option.pure.ts"
 import * as Record from "./Record.pure.ts"
 
-export const ToUnix = (d: Temporal.ZonedDateTime): string => pipe(
+export const ToUnix = (d: Temporal.ZonedDateTime): string => Pipe(
 	d.epochMilliseconds,
 	d => Math.floor(d / 1000),
 	d => `<t:${d}:f>`,
@@ -59,15 +59,11 @@ export const ZonedDateTimeWith = (
 		Array.findFirst(KeyOfPlainDateTimeLike, y => y === n),
 		Option.map(name => [name, v] as const),
 	)),
-	options => {
-		const [positives, negatives] = Pipe(
-			Array.Partition(options, ([k, v]) => v >= 0),
-			Tuple.mapSecond(Array.map(([k, v]) => [keyTimeToDuration[k], v * -1] as const)),
-		)
-		return Pipe(
-			d,
-			x => Array.isEmptyArray(positives) ? x : x.with(Record.FromEntries(positives)),
-			x => Array.isEmptyArray(negatives) ? x : x.subtract(Record.FromEntries(negatives)),
-		)
-	},
+	Array.Partition(([k, v]) => v >= 0),
+	Tuple.mapSecond(Array.map(([k, v]) => [keyTimeToDuration[k], v * -1] as const)),
+	([positives, negatives]) => Pipe(
+		d,
+		d => Array.isEmptyArray(positives) ? d : d.with(Record.FromEntries(positives)),
+		d => Array.isEmptyArray(negatives) ? d : d.subtract(Record.FromEntries(negatives)),
+	),
 )
