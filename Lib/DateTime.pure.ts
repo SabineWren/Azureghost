@@ -20,8 +20,6 @@ const getTimeZone = (d: Temporal.ZonedDateTime): string => d.timeZoneId
 export const Format = (d: Temporal.ZonedDateTime, locale?: Intl.UnicodeBCP47LocaleIdentifier, options?: Intl.DateTimeFormatOptions): string => {
 	const opt = options ? { ..._DATE_OPTIONS, ...options } : _DATE_OPTIONS
 	opt.timeZone = getTimeZone(d)
-	console.log(d.epochMilliseconds)
-	console.log(d.timeZoneId, locale, new Date(d.epochMilliseconds).toLocaleString(locale ?? "en-AU", opt))
 	// en-AU because it avoids the confusion of numeric mm/dd/yy formats.
 	return new Date(d.epochMilliseconds).toLocaleString(locale ?? "en-AU", opt)
 }

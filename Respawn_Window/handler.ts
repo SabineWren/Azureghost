@@ -1,7 +1,8 @@
 import type {
+	APIContainerComponent,
 	APIInteractionResponse,
 	APIInteractionResponseCallbackData,
-	APIMessageTopLevelComponent,
+	APIMessageComponent,
 } from "discord-api-types/v10"
 import { GetCommandOptions, ParseCommandString, ParseUserId } from "../Discord/pure.ts"
 import {
@@ -42,7 +43,7 @@ export const HandleKill = (cmd: Interaction.ApplicationCommand): Promise<APIInte
 			xs => DateTime.ZonedDateTimeWith(now, xs),
 		)
 		if (d.epochMilliseconds > now.epochMilliseconds)
-			return msgError("Error - you entered a kill time in the future: " + DateTime.ToUnix(d))
+			return msgError("Error - You entered a kill time in the future: " + DateTime.ToUnix(d))
 		else {
 			await SaveTime(gId, bossName, d)
 			return GetKills(gId).then(msgRespawnWindows)
@@ -50,7 +51,7 @@ export const HandleKill = (cmd: Interaction.ApplicationCommand): Promise<APIInte
 	}),
 	Option.getOrElse((): Promise<APIInteractionResponse> => Pipe(
 		[
-			"Error validating command",
+			"Error - Bad command arguments",
 			cmd.data.name,
 			JSON.stringify(cmd.data.type === ApplicationCommandType.ChatInput ? cmd.data.options : cmd.data.type),
 		].join("; "),
@@ -62,7 +63,7 @@ export const HandleKill = (cmd: Interaction.ApplicationCommand): Promise<APIInte
 const msgRespawnWindows = (kills: Map<BossName, Kill>): APIInteractionResponse => {
 	const output = Pipe(kills, Dict.Values, ComputeRespawnWindows)
 
-	const text: APIMessageTopLevelComponent = {
+	const text: APIMessageComponent = {
 		type: MessageComponentTypes.TEXT_DISPLAY,
 		content: output,
 	}
@@ -74,13 +75,18 @@ const msgRespawnWindows = (kills: Map<BossName, Kill>): APIInteractionResponse =
 }
 
 const msgError = (s: string): APIInteractionResponse => {
-	const text: APIMessageTopLevelComponent = {
+	const text: APIMessageComponent = {
 		type: MessageComponentTypes.TEXT_DISPLAY,
 		content: s,
 	}
+	const container: APIContainerComponent = {
+		type: MessageComponentTypes.CONTAINER,
+		accent_color: 0xFF0000,
+		components: [text]
+	}
 	const data: APIInteractionResponseCallbackData = {
 		flags: InteractionResponseFlags.IS_COMPONENTS_V2 | InteractionResponseFlags.EPHEMERAL,
-		components: [text],
+		components: [container],
 	}
 	return { type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE, data: data }
 }
