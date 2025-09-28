@@ -3,7 +3,7 @@ import { BOSS, type BossName, BossNames, Kill } from "./types.ts"
 import { GuildId } from "../Discord/types.ts"
 
 const guildState = S.Struct({
-	TimeZone: S.String,// TODO store server timezone "UTC", "Europe/London"
+	TimeZone: S.String,// TODO validate timezones
 	Enabled: S.Set(S.String),
 	DeathTime: S.Map({ key: S.String, value: S.ZonedDateTime })
 })
