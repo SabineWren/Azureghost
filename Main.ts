@@ -55,12 +55,7 @@ const onCommand = async (res: Response, interaction: Interaction.ApplicationComm
 			}),
 		)
 	case "kill":
-		return HandleKill(interaction).then(x => {
-			switch(x.Status) {
-			case 200: return res.send(x.Payload)
-			case 400: return res.status(x.Status).json({ error: x.Error })
-			}
-		})
+		return HandleKill(interaction).then(x => res.send(x))
 	default:
 		console.error("unknown command", interaction.data.name)
 		return res.status(400).json({ error: "unknown command" })

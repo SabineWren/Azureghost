@@ -85,3 +85,4 @@ export const BOSS = {
 		},
 	},
 } as const satisfies Record<string, Boss>
+export type BossName = keyof typeof BOSS

@@ -10,9 +10,18 @@ export const ToUnix = (d: Temporal.ZonedDateTime): string => Pipe(
 	d => `<t:${d}:f>`,
 )
 
+// ZonedDateTime has a .timeZoneId property which works in Firefox.
+// However, it returns 'undefined' in NodeJS
+const matchTimeZone = /\[(.+)\]$/
+const getTimeZone = (d: Temporal.ZonedDateTime): string => d.timeZoneId
+	? d.timeZoneId
+	: d.toString().match(matchTimeZone)?.at(1) ?? "UTC"
+
 export const Format = (d: Temporal.ZonedDateTime, locale?: Intl.UnicodeBCP47LocaleIdentifier, options?: Intl.DateTimeFormatOptions): string => {
 	const opt = options ? { ..._DATE_OPTIONS, ...options } : _DATE_OPTIONS
-	opt.timeZone = d.timeZoneId
+	opt.timeZone = getTimeZone(d)
+	console.log(d.epochMilliseconds)
+	console.log(d.timeZoneId, locale, new Date(d.epochMilliseconds).toLocaleString(locale ?? "en-AU", opt))
 	// en-AU because it avoids the confusion of numeric mm/dd/yy formats.
 	return new Date(d.epochMilliseconds).toLocaleString(locale ?? "en-AU", opt)
 }
