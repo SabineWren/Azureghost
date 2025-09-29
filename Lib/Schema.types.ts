@@ -17,9 +17,6 @@ export const DefaultLiteral = <T extends Literal>(t: T) => Pipe(
 	Default(t),
 )
 
-export const Duration = S.declare((x: unknown) => x instanceof Temporal.Duration)
-export const ZonedDateTime = S.declare((x: unknown) => x instanceof Temporal.ZonedDateTime)
-
 export {
 	Any,
 	Array,
@@ -37,6 +34,7 @@ export {
 	Literal,
 	lowercased as Lowercase,
 	Lowercased as LowercaseString,
+	Map as MutableMap,
 	NullOr,
 	Number,
 	omit as Omit,
@@ -59,3 +57,41 @@ export const Enum = <Key extends PropertyKey, V extends Literal>(
 	// It should otherwise be equivalent to S.Schema<literal, literal, never>
 ): S.Literal<NonEmptyArray<V>> =>
 	S.Literal(...(Object.values(pojo) as NonEmptyArray<V>))
+
+export const Duration: S.Schema<Temporal.Duration, string, never> = (() => {
+	const dto = S.String
+	const domain = S.declare((x: unknown) => x instanceof Temporal.Duration)
+
+	type dtoI = typeof dto.Type
+	type dtoE = typeof dto.Encoded
+	type domainI = typeof domain.Type
+	type domainE = typeof domain.Encoded
+
+	return S.transform(dto, domain, {
+		strict: true,
+		decode: (dto: dtoI, dtoE: dtoE): domainE =>
+			Temporal.Duration.from(dtoE),
+		encode: (domainE: domainE, domain: domainI): dtoI =>
+			domain.toString(),
+	})
+})()
+export type Duration = typeof Duration.Type
+
+export const ZonedDateTime: S.Schema<Temporal.ZonedDateTime, number, never> = (() => {
+	const dto = S.Int
+	const domain = S.declare((x: unknown) => x instanceof Temporal.ZonedDateTime)
+
+	type dtoI = typeof dto.Type
+	type dtoE = typeof dto.Encoded
+	type domainI = typeof domain.Type
+	type domainE = typeof domain.Encoded
+
+	return S.transform(dto, domain, {
+		strict: true,
+		decode: (dto: dtoI, dtoE: dtoE): domainE =>
+			Temporal.Instant.fromEpochMilliseconds(dtoE).toZonedDateTimeISO("UTC"),
+		encode: (domainE: domainE, domain: domainI): dtoI =>
+			domain.epochMilliseconds,
+	})
+})()
+export type ZonedDateTime = typeof ZonedDateTime.Type

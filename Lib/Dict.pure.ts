@@ -1,5 +1,6 @@
 import { CurryRev } from "./Function.pure.ts"
 import * as Option from "./Option.pure.ts"
+import type { Literal } from "./Util.d.ts"
 
 export type Dict<K, V> = ReadonlyMap<K, V>
 type Option<A> = Option.Option<A>
@@ -9,9 +10,14 @@ type Option<A> = Option.Option<A>
 // -----------------------------------------------------------------------------
 
 export const Get: {
-	<K, V>(map: Dict<K, V>, k: K): Option<V>
-	<K>(k: K): <V>(map: Dict<K, V>) => Option<V>
-} = CurryRev(<K, V>(map: Dict<K, V>, k: K): Option<V> => Option.fromNullable(map.get(k)))
+	<K extends Literal, V>(map: Dict<K, V>, k: K): Option<V>
+	<K extends Literal>(k: K): <V>(map: Dict<K, V>) => Option<V>
+} = CurryRev(<K extends Literal, V>(map: Dict<K, V>, k: K): Option<V> => Option.fromNullable(map.get(k)))
+
+export const GetOr: {
+	<K extends Literal, V>(map: Dict<K, V>, k: K, fallback: V): V
+	<K extends Literal, V>(k: K, fallback: V): (map: Dict<K, V>) => V
+} = CurryRev(<K extends Literal, V>(map: Dict<K, V>, k: K, fallback: V): V => map.get(k) ?? fallback)
 
 // -----------------------------------------------------------------------------
 // ************ Conversions ************
