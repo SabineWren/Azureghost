@@ -1,5 +1,5 @@
 import { Array, DateTime, Dict, Flow, HookR, Option, Record, Pipe } from "../Lib/pure.ts"
-import { Boss, Kill, type Window } from "./types.ts"
+import { Boss, BossKill, type Window } from "./types.ts"
 
 const formatWindow = (tz: string) => (x: Window): string => {
 	const s = x.Start.withTimeZone(tz)
@@ -11,13 +11,13 @@ const formatWindow = (tz: string) => (x: Window): string => {
 	].join("\n")
 }
 
-export const ComputeRespawnWindow = (k: Kill): Window => HookR(
+export const ComputeRespawnWindow = (k: BossKill): Window => HookR(
 	k.At.add(k.Boss.Respawn.Delay),
 	ws => ws.add(k.Boss.Respawn.Length),
 	(ws, we) => ({ Boss: k.Boss, Start: ws, End: we }),
 )
 
-export const ComputeRespawnWindows = (tz: string, xs: readonly Kill[]): string => Pipe(
+export const ComputeRespawnWindows = (tz: string, xs: readonly BossKill[]): string => Pipe(
 	xs,
 	Array.map(ComputeRespawnWindow),
 	Array.SortBy(x => x.Start, Temporal.ZonedDateTime.compare),

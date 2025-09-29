@@ -18,11 +18,35 @@ import {
 
 import { Array, DateTime, Dict, Option, Record, Pipe } from "../Lib/pure.ts"
 import {} from "./Command.types.ts"
-import { GetKills, SaveTime, TimeZoneGet, TimeZoneSet } from "./db.ts"
+import * as Db from "./db.ts"
 import { ComputeRespawnWindows } from "./pure.ts"
-import { type BossName, BossNames, Kill } from "./types.ts"
+import { type BossName, BossNames, BossKill } from "./types.ts"
 
-export const HandleKill = (cmd: Interaction.ApplicationCommand): Promise<APIInteractionResponse> => Pipe(
+export const Clear = (cmd: Interaction.ApplicationCommand): Promise<APIInteractionResponse> => Pipe(
+	Option.Do,
+	Option.bind("gId", () => Option.fromNullable(cmd.guild_id)),
+	Option.bind("bossName", () => Pipe(
+		ParseCommandString(0, cmd),
+		Option.map(x => x.value),
+		Option.flatMap(x => Array.findFirst(BossNames, y => y === x)),
+	)),
+	Option.map(async ({ gId, bossName }): Promise<APIInteractionResponse> => {
+		await Db.TimeRemove(gId, bossName)
+		const tz = await Db.TimeZoneGet(gId)
+		return Db.GetKills(gId).then(msgRespawnWindows(tz))
+	}),
+	Option.getOrElse((): Promise<APIInteractionResponse> => Pipe(
+		[
+			"Error - Bad command arguments",
+			cmd.data.name,
+			JSON.stringify(cmd.data.type === ApplicationCommandType.ChatInput ? cmd.data.options : cmd.data.type),
+		].join("; "),
+		msgError,
+		x => Promise.resolve(x),
+	)),
+)
+
+export const Kill = (cmd: Interaction.ApplicationCommand): Promise<APIInteractionResponse> => Pipe(
 	Option.Do,
 	Option.bind("gId", () => Option.fromNullable(cmd.guild_id)),
 	Option.bind("bossName", () => Pipe(
@@ -34,7 +58,7 @@ export const HandleKill = (cmd: Interaction.ApplicationCommand): Promise<APIInte
 		.filter(x => x.type === ApplicationCommandOptionType.Integer)
 	),
 	Option.map(async ({ gId, bossName, options }): Promise<APIInteractionResponse> => {
-		const tz = await TimeZoneGet(gId)
+		const tz = await Db.TimeZoneGet(gId)
 		const now = Temporal.Now.zonedDateTimeISO().withTimeZone(tz)
 		const d = Pipe(
 			options,
@@ -44,8 +68,8 @@ export const HandleKill = (cmd: Interaction.ApplicationCommand): Promise<APIInte
 		if (d.epochMilliseconds > now.epochMilliseconds)
 			return msgError("Error - You entered a kill time in the future: " + DateTime.ToUnix(d))
 		else {
-			await SaveTime(gId, bossName, d)
-			return GetKills(gId).then(msgRespawnWindows(tz))
+			await Db.TimeSave(gId, bossName, d)
+			return Db.GetKills(gId).then(msgRespawnWindows(tz))
 		}
 	}),
 	Option.getOrElse((): Promise<APIInteractionResponse> => Pipe(
@@ -59,7 +83,7 @@ export const HandleKill = (cmd: Interaction.ApplicationCommand): Promise<APIInte
 	)),
 )
 
-export const HandleTimeZone = (cmd: Interaction.ApplicationCommand): Promise<APIInteractionResponse> => Pipe(
+export const TimeZone = (cmd: Interaction.ApplicationCommand): Promise<APIInteractionResponse> => Pipe(
 	Option.Do,
 	Option.bind("gId", () => Option.fromNullable(cmd.guild_id)),
 	Option.bind("timezone", () => Pipe(
@@ -67,7 +91,7 @@ export const HandleTimeZone = (cmd: Interaction.ApplicationCommand): Promise<API
 		Option.map(x => x.value),
 	)),
 	Option.map(async ({ gId, timezone }): Promise<APIInteractionResponse> => {
-		await TimeZoneSet(gId, timezone)
+		await Db.TimeZoneSet(gId, timezone)
 		return msgNormal("TimeZone set to " + timezone)
 	}),
 	Option.getOrElse((): Promise<APIInteractionResponse> => Pipe(
@@ -81,7 +105,7 @@ export const HandleTimeZone = (cmd: Interaction.ApplicationCommand): Promise<API
 	)),
 )
 
-const msgRespawnWindows = (tz: string) => (kills: readonly Kill[]): APIInteractionResponse => {
+const msgRespawnWindows = (tz: string) => (kills: readonly BossKill[]): APIInteractionResponse => {
 	const output = ComputeRespawnWindows(tz, kills)
 
 	const text: APIMessageComponent = {

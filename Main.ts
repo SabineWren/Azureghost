@@ -19,7 +19,7 @@ import {
 } from "./Discord/types.ts"
 import { HttpDelete } from "./Lib/http.ts"
 import { Flow, Option, Pipe, S } from "./Lib/pure.ts"
-import { HandleKill, HandleTimeZone } from "./Respawn_Window/handler.ts"
+import * as Handle from "./Respawn_Window/handler.ts"
 import { Config } from "./env.ts"
 
 const router = express()
@@ -32,10 +32,12 @@ const parseFirstSelectOption = (interaction: Interaction.MessageComponent) => Pi
 
 const onCommand = async (res: Response, interaction: Interaction.ApplicationCommand): Promise<Response> => {
 	switch (interaction.data.name) {
+	case "clear":
+		return Handle.Clear(interaction).then(x => res.send(x))
 	case "kill":
-		return HandleKill(interaction).then(x => res.send(x))
+		return Handle.Kill(interaction).then(x => res.send(x))
 	case "timezone":
-		return HandleTimeZone(interaction).then(x => res.send(x))
+		return Handle.TimeZone(interaction).then(x => res.send(x))
 	default:
 		console.error("unknown command", interaction.data.name)
 		return res.status(400).json({ error: "unknown command" })

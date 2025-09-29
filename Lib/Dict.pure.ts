@@ -44,8 +44,16 @@ export const Alter: {
 	return mapCopy
 })
 
+export const Remove: {
+	<K, V>(map: Dict<K, V>, k: K): Dict<K, V>
+	<K, V>(k: K): (map: Dict<K, V>) => Dict<K, V>
+} = CurryRev(<K, V>(map: Dict<K, V>, k: K) =>
+	Alter(map, k, _ => Option.none())
+)
+
 export const Set: {
 	<K, V>(map: Dict<K, V>, k: K, v: V): Dict<K, V>
 	<K, V>(k: K, v: V): (map: Dict<K, V>) => Dict<K, V>
 } = CurryRev(<K, V>(map: Dict<K, V>, k: K, v: V): Dict<K, V> =>
-	Alter(map, k, _ => Option.some(v)))
+	Alter(map, k, _ => Option.some(v))
+)

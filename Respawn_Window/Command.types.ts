@@ -1,5 +1,4 @@
 
-import type {} from "discord-api-types/v10"
 import { BOSS, BossNames } from "./types.ts"
 import { Array, DateTime, Month, Pipe, Record } from "../Lib/pure.ts"
 import {
@@ -12,7 +11,7 @@ import {
 
 const optionBoss = ApplicationCommandOption.String.make({
 	name: "boss",
-	description: "Which boss died?",
+	description: "Which world boss?",
 	required: true,
 	choices: Array.map(BossNames, x => ({ name: x, value: x })),
 })
@@ -64,6 +63,14 @@ export const KillTimeOption = [
 ] as const
 
 export const COMMANDS: NewCommand[] = [
+	{
+		name: "clear",
+		description: "Remove a boss kill time",
+		options: [optionBoss] satisfies ApplicationCommandOption.Union[],
+		type: ApplicationCommandType.ChatInput,
+		integration_types: [ApplicationIntegrationType.GuildInstall],
+		contexts: [InteractionContextType.Guild],
+	},
 	{
 		name: "kill",
 		description: "Update kill time for a boss",

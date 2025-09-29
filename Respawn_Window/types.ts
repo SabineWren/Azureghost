@@ -11,14 +11,14 @@ export const Boss = S.Struct({
 	Respawn: Respawn,
 })
 
-export const Kill = S.Struct({
+export const BossKill = S.Struct({
 	Boss: Boss,
 	At: S.ZonedDateTime,
 })
 
 export type Respawn = typeof Respawn.Type
 export type Boss = typeof Boss.Type
-export type Kill = typeof Kill.Type
+export type BossKill = typeof BossKill.Type
 
 export type Window = {
 	Boss: Boss
