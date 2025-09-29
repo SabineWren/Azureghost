@@ -2,6 +2,7 @@
 node_modules
 
 # Secrets
+db.json
 secrets.env
 
 # Only needed until official typedefs exist
