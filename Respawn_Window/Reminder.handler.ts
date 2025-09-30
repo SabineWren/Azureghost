@@ -1,6 +1,6 @@
 import * as Db from "./db.ts"
 import * as Http from "../Lib/http.ts"
-import { Option } from "../Lib/pure.ts"
+import { Dict, Option } from "../Lib/pure.ts"
 import { BOSS, type BossName } from "./types.ts"
 
 setInterval(async () => {
@@ -17,8 +17,9 @@ setInterval(async () => {
 				})
 				.filter(([n, b, t]) => t.add(b.Respawn.Delay).epochMilliseconds < now)
 				.map(async ([n, b, t]) => {
+					const emoji = Dict.GetOr(s.CustomEmoji, n, b.Emoji)
 					const msg = {
-						content: `${b.Emoji} ${b.Name} window open`,
+						content: `${emoji} ${b.Name} window open`,
 					}
 					await Http.PostI(`channels/${channelId}/messages`, msg)
 					await Db.NotifySet(g, n)
