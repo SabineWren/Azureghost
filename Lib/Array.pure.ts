@@ -18,7 +18,6 @@ export const Choose: {
 	}
 	return zs
 })
-// Pipe(EffectArray.map(xs, chooser), EffectArray.getSomes)
 
 export const FilterMap: {
 	<A, B extends A, C>(pred: (x: A, i: number) => x is B, f: (x: B, i: number) => C): (xs: readonly A[]) => C[]
@@ -26,11 +25,7 @@ export const FilterMap: {
 	<A, B extends A, C>(xs: readonly A[], pred: (x: A, i: number) => x is B, f: (x: B, i: number) => C): C[]
 	<A, C>(xs: readonly A[], pred: (x: A, i: number) => boolean, f: (x: A, i: number) => C): C[]
 } = CurryRev(
-	<A, C>(
-		xs: readonly A[],
-		pred: (x: A, i: number) => boolean,
-		f: (x: A, i: number) => C,
-	): C[] => {
+	<A, C>(xs: readonly A[], pred: (x: A, i: number) => boolean, f: (x: A, i: number) => C): C[] => {
 		const ys: C[] = []
 		for (let i = 0; i < xs.length; i++) {
 			const x = xs[i]!
@@ -38,6 +33,22 @@ export const FilterMap: {
 		}
 		return ys
 	}
+)
+
+export const MapFilter: {
+	<A, B, C extends B>(xs: readonly A[], f: (x: A, i: number) => B, pred: (y: B, i: number) => y is C): C[]
+	<A, B>(xs: readonly A[], f: (x: A, i: number) => B, pred: (y: B, i: number) => boolean): B[]
+	<A, B, C extends B>(f: (x: A, i: number) => B, pred: (y: B, i: number) => y is C): (xs: readonly A[]) => C[]
+	<A, B>(f: (x: A, i: number) => B, pred: (y: B, i: number) => boolean): (xs: readonly A[]) => B[]
+} = CurryRev(
+	<A, B>(xs: readonly A[], f: (x: A, i: number) => B, pred: (y: B, i: number) => boolean) => {
+		const ys: B[] = []
+		for (let i = 0; i < xs.length; i++) {
+			const y = f(xs[i]!, i)
+			if (pred(y, i)) ys.push(y)
+		}
+		return ys
+	},
 )
 
 export const Includes = <A extends Comparable, B extends Comparable>(

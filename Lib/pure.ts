@@ -3,6 +3,7 @@ export * from "./Combinators.pure.ts"
 export * as DateTime from "./DateTime.pure.ts"
 export * as Dict from "./Dict.pure.ts"
 export * from "./Function.pure.ts"
+export * as Set from "./Set.pure.ts"
 export * from "./types.ts"
 export type * from "./types.ts"
 

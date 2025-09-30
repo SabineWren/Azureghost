@@ -1,10 +1,3 @@
-import type {
-	APIApplicationCommandInteractionDataIntegerOption,
-	APIApplicationCommandInteractionDataStringOption,
-	APIMessageComponentInteraction,
-	APIMessageSelectMenuInteractionData,
-	APIModalSubmitInteraction,
-} from "discord-api-types/v10"
 import { verifyKeyMiddleware } from "discord-interactions"
 import express, { type Response } from "express"
 import { GetCommandOptions, ParseCommandString, ParseUserId } from "./Discord/pure.ts"
@@ -17,10 +10,11 @@ import {
 	InteractionType,
 	InteractionDataOption,
 } from "./Discord/types.ts"
-import { HttpDelete } from "./Lib/http.ts"
 import { Flow, Option, Pipe, S } from "./Lib/pure.ts"
 import * as Handle from "./Respawn_Window/handler.ts"
 import { Config } from "./env.ts"
+
+import "./Respawn_Window/Reminder.handler.ts"
 
 const router = express()
 
@@ -86,4 +80,3 @@ const PORT = 3000
 router.listen(PORT, () => {
 	console.log("Listening on port " + PORT, PORT)
 });
-

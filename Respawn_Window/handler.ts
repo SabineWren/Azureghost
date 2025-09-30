@@ -68,7 +68,7 @@ export const Kill = (cmd: Interaction.ApplicationCommand): Promise<APIInteractio
 		if (d.epochMilliseconds > now.epochMilliseconds)
 			return msgError("Error - You entered a kill time in the future: " + DateTime.ToUnix(d))
 		else {
-			await Db.TimeSave(gId, bossName, d)
+			await Db.TimeSave(gId, Option.fromNullable(cmd.channel_id), bossName, d)
 			return Db.GetKills(gId).then(msgRespawnWindows(tz))
 		}
 	}),

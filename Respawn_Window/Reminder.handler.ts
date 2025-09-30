@@ -1,0 +1,28 @@
+import * as Db from "./db.ts"
+import * as Http from "../Lib/http.ts"
+import { Option } from "../Lib/pure.ts"
+import { BOSS, type BossName } from "./types.ts"
+
+setInterval(async () => {
+	const now = Temporal.Now.zonedDateTimeISO().epochMilliseconds
+	for (const [g, s] of await Db.AppGet()) {
+		if (Option.isNone(s.ChannelAnnounce)) continue
+		const channelId = s.ChannelAnnounce.value
+		await Promise.all(
+			s.DeathTime.entries()
+				.filter(([n, t]) => !s.Announced.has(n) && !!BOSS[n as BossName])
+				.map(([n, t]) => {
+					const b = BOSS[n as BossName]
+					return [n as BossName, b, t] as const
+				})
+				.filter(([n, b, t]) => t.add(b.Respawn.Delay).epochMilliseconds < now)
+				.map(async ([n, b, t]) => {
+					const msg = {
+						content: `${b.Emoji} ${b.Name} window open`,
+					}
+					await Http.PostI(`channels/${channelId}/messages`, msg)
+					await Db.NotifySet(g, n)
+				})
+		)
+	}
+}, 10_000)
