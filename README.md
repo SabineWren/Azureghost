@@ -8,6 +8,11 @@ World boss timers created for Dragonwatch.
 
 Removes kill time for the boss.
 
+#### Emoji
+`/emoji [boss: dropdown] [emoji?: text]`
+
+Sets custom emoji for a boss. Leave blank to clear.
+
 #### Kill
 `/kill [boss: dropdown] [year?: 2025+] [month?: dropdown] [day?: -31 to 31] [hour?: -59 to 59] [minute?: -59 to 59]`
 
