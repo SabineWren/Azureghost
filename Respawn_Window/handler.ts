@@ -46,6 +46,34 @@ export const Clear = (cmd: Interaction.ApplicationCommand): Promise<APIInteracti
 	)),
 )
 
+export const Emoji = (cmd: Interaction.ApplicationCommand): Promise<APIInteractionResponse> => Pipe(
+	Option.Do,
+	Option.bind("gId", () => Option.fromNullable(cmd.guild_id)),
+	Option.bind("bossName", () => Pipe(
+		ParseCommandString(0, cmd),
+		Option.map(x => x.value),
+		Option.flatMap(x => Array.findFirst(BossNames, y => y === x)),
+	)),
+	Option.let("emoji", () => Pipe(
+		ParseCommandString(1, cmd),
+		Option.map(x => x.value),
+	)),
+	Option.map(async ({ gId, bossName, emoji }): Promise<APIInteractionResponse> => {
+		await Db.EmojiSet(gId, bossName, emoji)
+		const tz = await Db.TimeZoneGet(gId)
+		return Db.GetKills(gId).then(msgRespawnWindows(tz))
+	}),
+	Option.getOrElse((): Promise<APIInteractionResponse> => Pipe(
+		[
+			"Error - Bad command arguments",
+			cmd.data.name,
+			JSON.stringify(cmd.data.type === ApplicationCommandType.ChatInput ? cmd.data.options : cmd.data.type),
+		].join("; "),
+		msgError,
+		x => Promise.resolve(x),
+	)),
+)
+
 export const Kill = (cmd: Interaction.ApplicationCommand): Promise<APIInteractionResponse> => Pipe(
 	Option.Do,
 	Option.bind("gId", () => Option.fromNullable(cmd.guild_id)),

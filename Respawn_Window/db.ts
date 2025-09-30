@@ -7,6 +7,7 @@ import { GuildId, Snowflake } from "../Discord/types.ts"
 const guildState = S.Struct({
 	Announced: S.Set(S.String),
 	ChannelAnnounce: S.Option(Snowflake),
+	CustomEmoji: S.Map({ key: S.String, value: S.String }),
 	DeathTime: S.Map({ key: S.String, value: S.ZonedDateTime }),
 	TimeZone: S.String,// TODO validate timezones
 })
@@ -14,6 +15,7 @@ type guildState = typeof guildState.Type
 const defaultGuild: guildState = {
 	Announced: Set.Empty(),
 	ChannelAnnounce: Option.none(),
+	CustomEmoji: new Map(),
 	DeathTime: new Map(),
 	TimeZone: "UTC",
 }
@@ -53,9 +55,28 @@ export const GetKills = (gId: GuildId): Promise<BossKill[]> =>
 		Record.Entries(BOSS),
 		Array.FilterMap(
 			([k, v]) => s.DeathTime.has(k),
-			([k, v]): BossKill => ({ Boss: v, At: s.DeathTime.get(k)! }),
+			([k, v]): BossKill => ({
+				Boss: {
+					...v,
+					Emoji: Dict.GetOr(s.CustomEmoji, k, v.Emoji),
+				},
+				At: s.DeathTime.get(k)!,
+			}),
 		),
 ))
+
+export const EmojiSet = async (gId: GuildId, name: BossName, emoji: Option<string>): Promise<void> => {
+	const s = await guildGet(gId)
+	await Pipe(
+		CopyWith(s, {
+			CustomEmoji: Option.match(emoji, {
+				onNone: () => Dict.Remove(s.CustomEmoji, name),
+				onSome: emoji => Dict.Set(s.CustomEmoji, name, emoji)
+			}),
+		}),
+		x => guildSave(gId, x),
+	)
+}
 
 export const NotifySet = async (gId: GuildId, name: BossName): Promise<void> => {
 	const s = await guildGet(gId)

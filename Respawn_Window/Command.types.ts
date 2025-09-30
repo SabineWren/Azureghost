@@ -22,6 +22,12 @@ const optionTimeZone = ApplicationCommandOption.String.make({
 	required: true,
 })
 
+const optionEmoji = ApplicationCommandOption.String.make({
+	name: "emoji",
+	description: "String prefix for formatting boss names.",
+	required: false,
+})
+
 export const KillTimeOption = [
 	ApplicationCommandOption.Integer.make({
 		name: "year" satisfies Temporal.DateTimeUnit,
@@ -67,6 +73,14 @@ export const COMMANDS: NewCommand[] = [
 		name: "clear",
 		description: "Remove a boss kill time",
 		options: [optionBoss] satisfies ApplicationCommandOption.Union[],
+		type: ApplicationCommandType.ChatInput,
+		integration_types: [ApplicationIntegrationType.GuildInstall],
+		contexts: [InteractionContextType.Guild],
+	},
+	{
+		name: "emoji",
+		description: "Change emoji for a boss. Empty value to reset.",
+		options: [optionBoss, optionEmoji] satisfies ApplicationCommandOption.Union[],
 		type: ApplicationCommandType.ChatInput,
 		integration_types: [ApplicationIntegrationType.GuildInstall],
 		contexts: [InteractionContextType.Guild],
