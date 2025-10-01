@@ -28,6 +28,8 @@ const onCommand = async (res: Response, interaction: Interaction.ApplicationComm
 	switch (interaction.data.name) {
 	case "clear":
 		return Handle.Clear(interaction).then(x => res.send(x))
+	case "description":
+		return Handle.Description(interaction).then(x => res.send(x))
 	case "emoji":
 		return Handle.Emoji(interaction).then(x => res.send(x))
 	case "kill":

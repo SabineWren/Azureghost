@@ -1,5 +1,5 @@
 
-import { BOSS, BossNames } from "./types.ts"
+import { BossNames } from "./types.ts"
 import { Array, DateTime, Month, Pipe, Record } from "../Lib/pure.ts"
 import {
 	ApplicationCommandOption,
@@ -22,9 +22,15 @@ const optionTimeZone = ApplicationCommandOption.String.make({
 	required: true,
 })
 
+const optionDescription = ApplicationCommandOption.String.make({
+	name: "description",
+	description: "Descriptive text below boss name.",
+	required: false,
+})
+
 const optionEmoji = ApplicationCommandOption.String.make({
 	name: "emoji",
-	description: "String prefix for formatting boss names.",
+	description: "String prefix for boss name.",
 	required: false,
 })
 
@@ -73,6 +79,14 @@ export const COMMANDS: NewCommand[] = [
 		name: "clear",
 		description: "Remove a boss kill time",
 		options: [optionBoss] satisfies ApplicationCommandOption.Union[],
+		type: ApplicationCommandType.ChatInput,
+		integration_types: [ApplicationIntegrationType.GuildInstall],
+		contexts: [InteractionContextType.Guild],
+	},
+	{
+		name: "description",
+		description: "Add description text to a boss. Empty value to reset.",
+		options: [optionBoss, optionDescription] satisfies ApplicationCommandOption.Union[],
 		type: ApplicationCommandType.ChatInput,
 		integration_types: [ApplicationIntegrationType.GuildInstall],
 		contexts: [InteractionContextType.Guild],

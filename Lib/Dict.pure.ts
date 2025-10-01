@@ -27,6 +27,8 @@ export const Keys = <K, V>(map: Dict<K, V>): K[] => [...map.keys()]
 
 export const Values = <K, V>(map: Dict<K, V>): V[] => [...map.values()]
 
+export const Entries = <K, V>(map: Dict<K, V>): [K, V][] => [...map.entries()]
+
 // -----------------------------------------------------------------------------
 // ************ Alterations ************
 // -----------------------------------------------------------------------------

@@ -20,7 +20,7 @@ import { Array, DateTime, Dict, Option, Record, Pipe } from "../Lib/pure.ts"
 import {} from "./Command.types.ts"
 import * as Db from "./db.ts"
 import { ComputeRespawnWindows } from "./pure.ts"
-import { type BossName, BossNames, BossKill } from "./types.ts"
+import { type BossName, BossNames, type GuildState } from "./types.ts"
 
 export const Clear = (cmd: Interaction.ApplicationCommand): Promise<APIInteractionResponse> => Pipe(
 	Option.Do,
@@ -33,7 +33,7 @@ export const Clear = (cmd: Interaction.ApplicationCommand): Promise<APIInteracti
 	Option.map(async ({ gId, bossName }): Promise<APIInteractionResponse> => {
 		await Db.TimeRemove(gId, bossName)
 		const tz = await Db.TimeZoneGet(gId)
-		return Db.GetKills(gId).then(msgRespawnWindows(tz))
+		return Db.GuildGet(gId).then(msgRespawnWindows(tz))
 	}),
 	Option.getOrElse((): Promise<APIInteractionResponse> => Pipe(
 		[
@@ -46,32 +46,45 @@ export const Clear = (cmd: Interaction.ApplicationCommand): Promise<APIInteracti
 	)),
 )
 
-export const Emoji = (cmd: Interaction.ApplicationCommand): Promise<APIInteractionResponse> => Pipe(
-	Option.Do,
-	Option.bind("gId", () => Option.fromNullable(cmd.guild_id)),
-	Option.bind("bossName", () => Pipe(
-		ParseCommandString(0, cmd),
-		Option.map(x => x.value),
-		Option.flatMap(x => Array.findFirst(BossNames, y => y === x)),
-	)),
-	Option.let("emoji", () => Pipe(
-		ParseCommandString(1, cmd),
-		Option.map(x => x.value),
-	)),
-	Option.map(async ({ gId, bossName, emoji }): Promise<APIInteractionResponse> => {
-		await Db.EmojiSet(gId, bossName, emoji)
-		const tz = await Db.TimeZoneGet(gId)
-		return Db.GetKills(gId).then(msgRespawnWindows(tz))
-	}),
-	Option.getOrElse((): Promise<APIInteractionResponse> => Pipe(
-		[
-			"Error - Bad command arguments",
-			cmd.data.name,
-			JSON.stringify(cmd.data.type === ApplicationCommandType.ChatInput ? cmd.data.options : cmd.data.type),
-		].join("; "),
-		msgError,
-		x => Promise.resolve(x),
-	)),
+const alterGuild =
+	(makeDelta: (n: BossName, v: Option<string>) => (s: GuildState) => Partial<GuildState>) =>
+	(cmd: Interaction.ApplicationCommand): Promise<APIInteractionResponse> => Pipe(
+		Option.Do,
+		Option.bind("gId", () => Option.fromNullable(cmd.guild_id)),
+		Option.bind("bossName", () => Pipe(
+			ParseCommandString(0, cmd),
+			Option.map(x => x.value),
+			Option.flatMap(x => Array.findFirst(BossNames, y => y === x)),
+		)),
+		Option.let("value", () => Pipe(
+			ParseCommandString(1, cmd),
+			Option.map(x => x.value),
+		)),
+		Option.map(async ({ gId, bossName, value }): Promise<APIInteractionResponse> => {
+			await Db.Modify(gId, makeDelta(bossName, value))
+			const tz = await Db.TimeZoneGet(gId)
+			return Db.GuildGet(gId).then(msgRespawnWindows(tz))
+		}),
+		Option.getOrElse((): Promise<APIInteractionResponse> => Pipe(
+			[
+				"Error - Bad command arguments",
+				cmd.data.name,
+				JSON.stringify(cmd.data.type === ApplicationCommandType.ChatInput ? cmd.data.options : cmd.data.type),
+			].join("; "),
+			msgError,
+			x => Promise.resolve(x),
+		)),
+	)
+
+export const Description = alterGuild(
+	(n, v) => s => ({
+		Description: Dict.Alter(s.Description, n, _ => v),
+	})
+)
+export const Emoji = alterGuild(
+	(n, v) => s => ({
+		CustomEmoji: Dict.Alter(s.CustomEmoji, n, _ => v),
+	})
 )
 
 export const Kill = (cmd: Interaction.ApplicationCommand): Promise<APIInteractionResponse> => Pipe(
@@ -97,7 +110,7 @@ export const Kill = (cmd: Interaction.ApplicationCommand): Promise<APIInteractio
 			return msgError("Error - You entered a kill time in the future: " + DateTime.ToUnix(d))
 		else {
 			await Db.TimeSave(gId, Option.fromNullable(cmd.channel_id), bossName, d)
-			return Db.GetKills(gId).then(msgRespawnWindows(tz))
+			return Db.GuildGet(gId).then(msgRespawnWindows(tz))
 		}
 	}),
 	Option.getOrElse((): Promise<APIInteractionResponse> => Pipe(
@@ -133,8 +146,8 @@ export const TimeZone = (cmd: Interaction.ApplicationCommand): Promise<APIIntera
 	)),
 )
 
-const msgRespawnWindows = (tz: string) => (kills: readonly BossKill[]): APIInteractionResponse => {
-	const output = ComputeRespawnWindows(tz, kills)
+const msgRespawnWindows = (tz: string) => (s: GuildState): APIInteractionResponse => {
+	const output = ComputeRespawnWindows(tz, s)
 
 	const text: APIMessageComponent = {
 		type: MessageComponentTypes.TEXT_DISPLAY,

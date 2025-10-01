@@ -1,87 +1,103 @@
-import { Record, S } from "../Lib/pure.ts"
+import { GuildId, Snowflake } from "../Discord/types.ts"
+import { Dict, Option, Pipe, S } from "../Lib/pure.ts"
+
+export const BossNames = ["Azuregos", "DoN", "Kazzak", "Reaver", "Moo", "Overseer"] as const
+export type BossName = typeof BossNames[number]
 
 const Respawn = S.Struct({
 	Delay: S.Duration,
 	Length: S.Duration,
 })
 
-export const Boss = S.Struct({
-	Name: S.String,
-	Emoji: S.String,
-	Respawn: Respawn,
+export const GuildState = S.Struct({
+	Announced: Pipe(S.Literal(...BossNames), S.Set, S.Default(new Set())),
+	ChannelAnnounce: Pipe(Snowflake, S.Option, S.Default(Option.none())),
+	CustomEmoji: Pipe(
+		S.Map({ key: S.Literal(...BossNames), value: S.String }),
+		S.Default(new Map()),
+	),
+	DeathTime: Pipe(
+		S.Map({ key: S.Literal(...BossNames), value: S.ZonedDateTime }),
+		S.Default(new Map()),
+	),
+	Description: Pipe(
+		S.Map({ key: S.Literal(...BossNames), value: S.String }),
+		S.Default(new Map()),
+	),
+	// TODO validate timezones
+	TimeZone: Pipe(S.String, S.Default("UTC")),
 })
 
-export const BossKill = S.Struct({
-	Boss: Boss,
-	At: S.ZonedDateTime,
-})
+export const AppState = S.MutableMap({ key: GuildId, value: GuildState })
 
 export type Respawn = typeof Respawn.Type
-export type Boss = typeof Boss.Type
-export type BossKill = typeof BossKill.Type
+export type GuildState = typeof GuildState.Type
+export type AppState = typeof AppState.Type
 
-export type Window = {
-	Boss: Boss
-	Start: Temporal.ZonedDateTime
-	End: Temporal.ZonedDateTime
+export type Range = {
+	S: Temporal.ZonedDateTime
+	E: Temporal.ZonedDateTime
 }
 
-export const BOSS = {
+export type Boss = {
+	Name: string
+	Emoji: string
+	Respawn: Respawn
+}
+
+export const BOSS: ReadonlyMap<BossName, Boss> = new Map([
 	// ------------------------------
 	// ************ Vanilla ************
 	// ------------------------------
-	Azuregos: {
+	["Azuregos", {
 		Name: "Azuregos",
 		Emoji: ":dragon_face:",
 		Respawn: {
 			Delay: Temporal.Duration.from({ days: 3 }),
 			Length: Temporal.Duration.from({ days: 4 }),
 		},
-	},
-	DoN: {
+	}],
+	["DoN", {
 		Name: "Dragons of Nightmare",
 		Emoji: ":dragon:",
 		Respawn: {
 			Delay: Temporal.Duration.from({ days: 4 }),
 			Length: Temporal.Duration.from({ days: 3 }),
 		},
-	},
-	Kazzak: {
+	}],
+	["Kazzak", {
 		Name: "Lord Kazzak",
 		Emoji: ":smiling_imp:",
 		Respawn: {
 			Delay: Temporal.Duration.from({ days: 3 }),
 			Length: Temporal.Duration.from({ days: 4 }),
 		},
-	},
+	}],
 	// ------------------------------
 	// ************ Turtle ************
 	// ------------------------------
-	Reaver: {
+	["Reaver", {
 		Name: "Dark Reaver of Karazhan",
 		Emoji: ":horse_racing:",
 		Respawn: {
 			Delay: Temporal.Duration.from({ days: 2 }),
 			Length: Temporal.Duration.from({ days: 3 }),
 		},
-	},
-	Moo: {
+	}],
+	["Moo", {
 		Name: "Moo",
 		Emoji: ":cow:",
 		Respawn: {
 			Delay: Temporal.Duration.from({ days: 4 }),
 			Length: Temporal.Duration.from({ days: 7 }),
 		},
-	},
-	Overseer: {
+	}],
+	["Overseer", {
 		Name: "Nerubian Overseer",
 		Emoji: ":spider:",
 		Respawn: {
 			Delay: Temporal.Duration.from({ days: 5 }),
 			Length: Temporal.Duration.from({ days: 2 }),
 		},
-	},
-} as const satisfies Record<string, Boss>
-export type BossName = keyof typeof BOSS
-
-export const BossNames = Record.Keys(BOSS)
+	}],
+])

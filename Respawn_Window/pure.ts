@@ -1,27 +1,41 @@
 import { Array, DateTime, Dict, Flow, HookR, Option, Record, Pipe } from "../Lib/pure.ts"
-import { Boss, BossKill, type Window } from "./types.ts"
+import { BOSS, type GuildState, type Range, type Respawn } from "./types.ts"
 
-const formatWindow = (tz: string) => (x: Window): string => {
-	const s = x.Start.withTimeZone(tz)
-	const e = x.End.withTimeZone(tz)
+const formatWindow = (tz: string, label: string, r: Range): string => {
+	const s = r.S.withTimeZone(tz)
+	const e = r.E.withTimeZone(tz)
 	return [
-		x.Boss.Emoji + "  " + x.Boss.Name,
+		label,
 		`${DateTime.Format(s)} to ${DateTime.Format(e)} **-** *Server / ${tz}*`,
 		`${DateTime.ToUnix(s)} to ${DateTime.ToUnix(e)} **-** *Local*`,
 	].join("\n")
 }
 
-export const ComputeRespawnWindow = (k: BossKill): Window => HookR(
-	k.At.add(k.Boss.Respawn.Delay),
-	ws => ws.add(k.Boss.Respawn.Length),
-	(ws, we) => ({ Boss: k.Boss, Start: ws, End: we }),
+export const ComputeRespawnWindow = (t: Temporal.ZonedDateTime, r: Respawn): Range => HookR(
+	t.add(r.Delay),
+	ws => ws.add(r.Length),
+	(ws, we) => ({ S: ws, E: we }),
 )
 
-export const ComputeRespawnWindows = (tz: string, xs: readonly BossKill[]): string => Pipe(
-	xs,
-	Array.map(ComputeRespawnWindow),
-	Array.SortBy(x => x.Start, Temporal.ZonedDateTime.compare),
-	Array.map(formatWindow(tz)),
+export const ComputeRespawnWindows = (tz: string, s: GuildState): string => Pipe(
+	Dict.Entries(BOSS),
+	Array.FilterMap(
+		([k, v]) => s.DeathTime.has(k),
+		([k, v]) => {
+			const emoji = Dict.GetOr(s.CustomEmoji, k, v.Emoji)
+			const description = Pipe(
+				Dict.Get(s.Description, k),
+				Option.map(x => "\n" + x),
+				Option.getOrElse(() => ""),
+			)
+			return {
+				Label: `${emoji} **${v.Name}**` + description,
+				Window: ComputeRespawnWindow(s.DeathTime.get(k)!, v.Respawn),
+			}
+		},
+	),
+	Array.SortBy(x => x.Window.S, Temporal.ZonedDateTime.compare),
+	Array.map(x => formatWindow(tz, x.Label, x.Window)),
 	Array.prepend("**UPCOMING BOSS TIMERS**"),
 	Array.join("\n\n"),
 )

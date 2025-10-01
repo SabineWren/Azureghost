@@ -1,7 +1,7 @@
 import * as Db from "./db.ts"
 import * as Http from "../Lib/http.ts"
 import { Dict, Option } from "../Lib/pure.ts"
-import { BOSS, type BossName } from "./types.ts"
+import { BOSS } from "./types.ts"
 
 setInterval(async () => {
 	const now = Temporal.Now.zonedDateTimeISO().epochMilliseconds
@@ -10,11 +10,8 @@ setInterval(async () => {
 		const channelId = s.ChannelAnnounce.value
 		await Promise.all(
 			s.DeathTime.entries()
-				.filter(([n, t]) => !s.Announced.has(n) && !!BOSS[n as BossName])
-				.map(([n, t]) => {
-					const b = BOSS[n as BossName]
-					return [n as BossName, b, t] as const
-				})
+				.filter(([n, t]) => !s.Announced.has(n) && BOSS.has(n))
+				.map(([n, t]) => [n, BOSS.get(n)!, t] as const)
 				.filter(([n, b, t]) => t.add(b.Respawn.Delay).epochMilliseconds < now)
 				.map(async ([n, b, t]) => {
 					const emoji = Dict.GetOr(s.CustomEmoji, n, b.Emoji)
