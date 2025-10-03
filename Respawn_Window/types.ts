@@ -81,7 +81,7 @@ export const BOSS: ReadonlyMap<BossName, Boss> = new Map([
 		Emoji: ":horse_racing:",
 		Respawn: {
 			Delay: Temporal.Duration.from({ days: 2 }),
-			Length: Temporal.Duration.from({ days: 3 }),
+			Length: Temporal.Duration.from({ days: 1 }),
 		},
 	}],
 	["Moo", {
@@ -89,7 +89,7 @@ export const BOSS: ReadonlyMap<BossName, Boss> = new Map([
 		Emoji: ":cow:",
 		Respawn: {
 			Delay: Temporal.Duration.from({ days: 4 }),
-			Length: Temporal.Duration.from({ days: 7 }),
+			Length: Temporal.Duration.from({ days: 3 }),
 		},
 	}],
 	["Overseer", {
