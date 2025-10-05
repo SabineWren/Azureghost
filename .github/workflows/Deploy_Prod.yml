@@ -1,0 +1,42 @@
+env:
+  # https://stackoverflow.com/a/71158878
+  BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+  VERSION_NODE: "24.4.x"
+
+name: Deploy Prod
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Git pull Source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.BRANCH_NAME }}
+
+      - name: Set up Node.js Version ${{ env.VERSION_NODE }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.VERSION_NODE }}
+          cache: "npm"
+
+      - name: Install dependencies and run tests
+        run: |
+          npm ci
+          npm run typecheck-once
+          npm run test
+
+      - name: "Deploy to Azure WebApp"
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: azureghost-france-web-app
+          clean: true
+# Publish Profile is the simplest way to do this
+# Alternatives are Service Principal (SPN) or Open ID Connect
+# https://docs.microsoft.com/en-us/azure/app-service/deploy-github-actions#generate-deployment-credentials
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          restart: true
