@@ -80,7 +80,6 @@ router.post("/interactions", verifyKeyMiddleware(Config.PUBLIC_KEY), async (req,
 	}
 })
 
-const PORT = 3000
-router.listen(PORT, () => {
-	console.log("Listening on port " + PORT, PORT)
+router.listen(Config.PORT, () => {
+	console.log("Listening on port " + Config.PORT, Config.PORT)
 });
