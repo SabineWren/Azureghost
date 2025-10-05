@@ -17,17 +17,14 @@ jobs:
         with:
           ref: ${{ env.BRANCH_NAME }}
 
-      - name: Set up Node.js Version ${{ env.VERSION_NODE }}
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: ${{ env.VERSION_NODE }}
+          node-version: 24.4.x
           cache: "npm"
-
-      - name: Install dependencies and run tests
-        run: |
-          npm ci
-          npm run typecheck-once
-          npm run test
+      - run: node --version
+      - run: npm ci
+      - run: npm run typecheck-once
+      - run: npm run test
 
       - name: "Deploy to Azure WebApp"
         id: deploy-to-webapp
